@@ -1,0 +1,925 @@
+openapi: 3.0.0
+info:
+  title: Resepee API
+  description: The Recipe API is a public API that can be used to display selected recipes submitted by users, in addition to displaying recipe names, this API also contains ingredients used in recipes, and instructions on how to cook recipes.
+  version: 0.0.1
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+
+paths:
+  /security/encode:
+    post:
+      summary: Encode string
+      tags:
+        - "Auth & Security"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+            example:
+              text: terserah
+      responses:
+        '200':
+          description: Encode string success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      encoded:
+                        type: string
+                  error:
+                    type: string
+              example:
+                message: 'Login success'
+                data:
+                  encoded: 'jnhabtvw'
+                error: ''
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                  error:
+                    type: string
+              example:
+                message: 'Invalid Request Body'
+                data:
+                error: 'Text cannot be empty'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                  error:
+                    type: string
+              example:
+                message: 'Internal Server Error'
+                data:
+                error: 'Error'
+
+  /auth/register:
+    post:
+      summary: Create an account
+      tags:
+        - "Auth & Security"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+            example:
+              name: John Doe
+              email: john.doe@mail.com
+              password: B0aNVotN29Q60R6q
+              password_confirmation: B0aNVotN29Q60R6q
+      responses:
+        '201':
+          description: User account created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+                  error:
+                    type: string
+              example:
+                message: 'User account successfully created'
+                data:
+                  id: 'eb8477df-8592-45a8-8ac0-222c97b4a82b'
+                  name: 'John Doe'
+                  email: 'john.doe@mail.com'
+                  joined_at: '6 August 2021'
+                error: ''
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                  error:
+                    type: string
+              example:
+                message: 'Invalid Request Body'
+                data:
+                error: 'Your e-mail is already registered'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                  error:
+                    type: string
+              example:
+                message: 'Internal Server Error'
+                data:
+                error: 'Error'
+
+  /auth/login:
+    post:
+      summary: Login account
+      tags:
+        - "Auth & Security"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+            example:
+              email: john.doe@mail.com
+              password: B0aNVotN29Q60R6q
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      token:
+                        type: string
+                  error:
+                    type: string
+              example:
+                message: 'Login success'
+                data:
+                  user:
+                    id: 'eb8477df-8592-45a8-8ac0-222c97b4a82b'
+                    name: 'John Doe'
+                    email: 'john.doe@mail.com'
+                    joined_at: '6 August 2021'
+                  token: 'kfhkalhfkshfhfahfkhslfhlshfaslfhlashflhsfilahfafhkfhlashfsahfakshfkash'
+                error: ''
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                  error:
+                    type: string
+              example:
+                message: 'Invalid Request Body'
+                data:
+                error: 'Invalid e-mail address'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                  error:
+                    type: string
+              example:
+                message: 'Internal Server Error'
+                data:
+                error: 'Error'
+
+  /materials:
+    get:
+      summary: Get materials
+      security:
+        - bearerAuth: []
+      tags:
+        - "Materials"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Material'
+                  error:
+                    type: string
+              example:
+                message: 'Get materials success'
+                data:
+                  - id: 'eb8477df-8592-45a8-8ac0-222c97b4a82b'
+                    name: 'Banana'
+                    image_path: '/public/materials/banana.jpg'
+                  - id: 'eb8477df-8592-45a8-8ac0-222c97b4a82a'
+                    name: 'Orange'
+                    image_path: '/public/materials/orange.jpg'
+                error: ''
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Add material
+      security:
+        - bearerAuth: []
+      tags:
+        - "Materials"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                image_file_id:
+                  type: string
+            example:
+              name: 'Banana'
+              image_file_id: 'eb8477df-8592-45a8-8ac0-222c97b4abgx'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      image_path:
+                        type: string
+                  error:
+                    type: string
+              example:
+                message: 'Material created'
+                data:
+                  id: 'eb8477df-8592-45a8-8ac0-222c97b4a82b'
+                  name: 'Banana'
+                  image_path: '/public/materials/banana.jpg'
+                error: ''
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /categories:
+    get:
+      summary: Get recipe categories
+      security:
+        - bearerAuth: []
+      tags:
+        - "Categories"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                  error:
+                    type: string
+              example:
+                message: 'Get categories success'
+                data:
+                  - id: 'eb8477df-8592-45a8-8ac0-222c97b4a82b'
+                    name: 'Seafood'
+                  - id: 'eb8477df-8592-45a8-8ac0-222c97b4a82a'
+                    name: 'Steak'
+                error: ''
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Add category
+      security:
+        - bearerAuth: []
+      tags:
+        - "Categories"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+            example:
+              name: 'Seafood'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                  error:
+                    type: string
+              example:
+                message: 'Category created'
+                data:
+                  id: 'eb8477df-8592-45a8-8ac0-222c97b4a82b'
+                  name: 'Seafood'
+                error: ''
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /files:
+    post:
+      summary: Upload file
+      security:
+        - bearerAuth: []
+      tags:
+        - "Files"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file_type:
+                  type: string
+                  enum:
+                    - recipe
+                    - material
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      file_type:
+                        type: string
+                      file_path:
+                        type: string
+                  error:
+                    type: string
+              example:
+                message: 'File uploaded'
+                data:
+                  id: 'eb8477df-8592-45a8-8ac0-222c97b4a82b'
+                  file_type: 'material'
+                  file_path: '/public/materials/banana.jpg'
+                error: ''
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /recipes:
+    get:
+      summary: Get recipes
+      security:
+        - bearerAuth: []
+      tags:
+        - "Recipes"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recipe'
+                  error:
+                    type: string
+              example:
+                message: 'Get recipes success'
+                data:
+                  - id: eb8477df-8592-45a8-8ac0-222c97b4a82b
+                    title: 'Soto Lamongan'
+                    description: 'Resep asli soto lamongan'
+                    thumbnail_path: '/public/recipe/soto-lamongan.jpg'
+                    category: 'Traditional'
+                    created_by: 'Suparmo'
+                    average_rating: 4.5
+                  - id: eb8477df-8592-45a8-8ac0-222c97b4a82c
+                    title: 'Soto Betawi'
+                    description: 'Resep asli soto betawi'
+                    thumbnail_path: '/public/recipe/soto-lamongan.jpg'
+                    category: 'Traditional'
+                    created_by: 'Aminah'
+                    average_rating: 4.5
+                error: ''
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Add recipe
+      security:
+        - bearerAuth: []
+      tags:
+        - "Recipes"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                thumbnail_file_id:
+                  type: string
+                recipe_category_id:
+                  type: string
+                materials:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      material_id:
+                        type: string
+                      amount:
+                        type: string
+                cook_steps:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      description:
+                        type: string
+                      order:
+                        type: number
+            example:
+              title: 'Soto Lamongan'
+              description: 'Resep asli soto lamongan'
+              thumbnail_file_id: 'eb8477df-8592-45a8-8ac0-222c97b4a8cx'
+              recipe_category_id: 'eb8477df-8592-45a8-8ac0-222c97b4abgx'
+              materials:
+                - material_id: 'eb8477df-8592-45a8-8ac0-222c97b4abgx'
+                  amount: '1 gram'
+                - material_id: 'eb8477df-8592-45a8-8ac0-222c97b4cdo'
+                  amount: '1 liter'
+              cooking_steps:
+                - description: 'tuangkan'
+                  order: 1
+                - description: 'tiriskan'
+                  order: 2
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Recipe'
+                  error:
+                    type: string
+              example:
+                message: 'Material created'
+                data:
+                  id: eb8477df-8592-45a8-8ac0-222c97b4a82b
+                  title: 'Soto Lamongan'
+                  description: 'Resep asli soto lamongan'
+                  thumbnail_path: '/public/recipe/soto-lamongan.jpg'
+                  category: 'Traditional'
+                  created_by: 'Suparmo'
+                  average_rating: 4.5
+                  materials:
+                    - material:
+                        id: 'eb8477df-8592-45a8-8ac0-222c97b4abgx'
+                        name: 'Banana'
+                        image_path: '/public/materials/banana.jpg'
+                      amount: '1 potong'
+                  cook_steps:
+                    - id: 'eb8477df-8592-45a8-8ac0-222c97b4abgx'
+                      description: 'tuangkan'
+                      order: 1
+                error: ''
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /recipes/{id}:
+    get:
+      summary: Get detail recipe
+      security:
+        - bearerAuth: []
+      tags:
+        - "Recipes"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                      $ref: '#/components/schemas/Recipe'
+                  error:
+                    type: string
+              example:
+                message: 'Get materials success'
+                data:
+                  id: eb8477df-8592-45a8-8ac0-222c97b4a82b
+                  title: 'Soto Lamongan'
+                  description: 'Resep asli soto lamongan'
+                  thumbnail_path: '/public/recipe/soto-lamongan.jpg'
+                  category: 'Traditional'
+                  created_by: 'Suparmo'
+                  average_rating: 4.5
+                  materials:
+                    - material:
+                        id: 'eb8477df-8592-45a8-8ac0-222c97b4abgx'
+                        name: 'Banana'
+                        image_path: '/public/materials/banana.jpg'
+                      amount: '1 potong'
+                  cook_steps:
+                    - id: 'eb8477df-8592-45a8-8ac0-222c97b4abgx'
+                      description: 'tuangkan'
+                      order: 1
+                error: ''
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /recipes/{id}/reviews:
+    get:
+      summary: Get recipe reviews
+      security:
+        - bearerAuth: []
+      tags:
+        - "Recipes"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+                  error:
+                    type: string
+              example:
+                message: 'Get recipe reviews success'
+                data:
+                  - user:
+                      id: 'eb8477df-8592-45a8-8ac0-222c97b4abgx'
+                      name: 'John Doe'
+                      email: 'john.doe@mail.com'
+                      joined_at: '6 August 2021'
+                    description: 'Good recipe'
+                    rating: 4.5
+                    created_at: '6 August 2021'
+                  - user:
+                      id: 'eb8477df-8592-45a8-8ac0-222c97b4abgx'
+                      name: 'John Doe'
+                      email: 'john.doe@mail.com'
+                      joined_at: '6 August 2021'
+                    description: 'Good recipe'
+                    rating: 4.5
+                    created_at: '6 August 2021'
+                error: ''
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Add recipe review
+      security:
+        - bearerAuth: []
+      tags:
+        - "Recipes"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                rating:
+                  type: number
+            example:
+              description: 'Good recipe'
+              rating: 4.5
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Review'
+                  error:
+                    type: string
+              example:
+                message: 'Review created'
+                data:
+                  user:
+                    id: 'eb8477df-8592-45a8-8ac0-222c97b4abgx'
+                    name: 'John Doe'
+                    email: 'john.doe@mail.com'
+                    joined_at: '6 August 2021'
+                  description: 'Good recipe'
+                  rating: 4.5
+                  created_at: '6 August 2021'
+                error: ''
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Register:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        password_confirmation:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        joined_at:
+          type: string
+    Material:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        image_path:
+          type: string
+    CookStep:
+      type: object
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        order:
+          type: number
+    Recipe:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        thumbnail_path:
+          type: string
+        category:
+          type: string
+        created_by:
+          type: string
+        average_rating:
+          type: number
+        materials:
+          type: array
+          items:
+            type: object
+            properties:
+              material:
+                $ref: '#/components/schemas/Material'
+              amount:
+                type: string
+        cook_steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/CookStep'
+    Review:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        description:
+          type: string
+        rating:
+          type: number
+        created_at:
+          type: string
+  
+  responses:
+    BadRequestError:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+              error:
+                type: string
+          example:
+            message: 'Bad Request'
+            data:
+            error: 'All field required'
+    UnauthorizedError:
+      description: Access token is missing or invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+              error:
+                type: string
+          example:
+            message: 'Unauthorized Access'
+            data:
+            error: 'Unauthorized'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: object
+              error:
+                type: string
+          example:
+            message: 'Internal Server Error'
+            data:
+            error: 'Error'
+
+tags:
+  - name: Auth & Security
+  - name: Materials
+  - name: Categories
+  - name: Recipes
+  - name: Files
