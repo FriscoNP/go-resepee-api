@@ -1,9 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+
+	"github.com/sirupsen/logrus"
+)
+
+func init() {
+	logrus.SetOutput(os.Stdout)
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetReportCaller(true)
+}
 
 func main() {
 	fmt.Println("Hello World")
-	fmt.Println("Add Feature A - 1")
-	fmt.Println("Add Feature B - 1")
 }
