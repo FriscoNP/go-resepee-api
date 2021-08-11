@@ -2,7 +2,7 @@ package entity
 
 import "time"
 
-type MaterialEntity struct {
+type Material struct {
 	ID          int       `json:"id"`
 	Name        string    `json:"name"`
 	ImageFileID int       `json:"image_file_id"`

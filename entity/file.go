@@ -2,7 +2,7 @@ package entity
 
 import "time"
 
-type FileEntity struct {
+type File struct {
 	ID        int       `json:"id"`
 	Type      string    `json:"type"`
 	Path      string    `json:"path"`

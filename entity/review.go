@@ -2,7 +2,7 @@ package entity
 
 import "time"
 
-type ReviewEntity struct {
+type Review struct {
 	ID          int       `json:"id"`
 	UserID      int       `json:"user_id"`
 	Description string    `json:"description"`

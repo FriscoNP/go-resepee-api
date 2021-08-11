@@ -2,7 +2,7 @@ package entity
 
 import "time"
 
-type RecipeMaterialEntity struct {
+type RecipeMaterial struct {
 	ID         int       `json:"id"`
 	RecipeID   int       `json:"recipe_id"`
 	MaterialID int       `json:"material_id"`
