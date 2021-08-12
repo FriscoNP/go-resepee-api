@@ -12,4 +12,9 @@ func (boot *BootApp) RegisterRoutes() {
 	authController := controller.NewAuthController(boot.DB, boot.JwtAuth)
 	authRoute.POST("/login", authController.Login)
 	authRoute.POST("/register", authController.Register)
+
+	materialRoute := baseRoute.Group("/materials")
+	materialController := controller.NewMaterialController(boot.DB, boot.JwtAuth)
+	materialRoute.GET("", materialController.Get)
+	materialRoute.POST("", materialController.Store)
 }
