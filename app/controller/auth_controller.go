@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"go-resepee-api/app/controller/request"
 	"go-resepee-api/app/controller/response"
 	"go-resepee-api/app/middleware"
@@ -8,13 +9,20 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type AuthController struct {
 	DB      *gorm.DB
 	JwtAuth *middleware.ConfigJWT
+}
+
+func NewAuthController(db *gorm.DB, jwtAuth *middleware.ConfigJWT) *AuthController {
+	return &AuthController{
+		DB:      db,
+		JwtAuth: jwtAuth,
+	}
 }
 
 func (ac *AuthController) Login(c echo.Context) error {
@@ -25,18 +33,13 @@ func (ac *AuthController) Login(c echo.Context) error {
 		return SendError(c, http.StatusBadRequest, err)
 	}
 
-	authUC := usecase.AuthUC{
-		Context: ctx,
-		DB:      ac.DB,
-		JwtAuth: ac.JwtAuth,
-	}
-
+	authUC := usecase.NewAuthUC(ctx, ac.DB, ac.JwtAuth)
 	token, err := authUC.Login(req.Email, req.Password)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return SendError(c, http.StatusNotFound, err)
+			return SendError(c, http.StatusNotFound, errors.New("account_not_found"))
 		}
-		logrus.Warn(err.Error())
+		log.Warn(err.Error())
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
@@ -55,15 +58,10 @@ func (ac *AuthController) Register(c echo.Context) error {
 		return SendError(c, http.StatusBadRequest, err)
 	}
 
-	authUC := usecase.AuthUC{
-		Context: ctx,
-		DB:      ac.DB,
-		JwtAuth: ac.JwtAuth,
-	}
-
+	authUC := usecase.NewAuthUC(ctx, ac.DB, ac.JwtAuth)
 	user, err := authUC.Register(&req)
 	if err != nil {
-		logrus.Warn(err.Error())
+		log.Warn(err.Error())
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 

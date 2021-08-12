@@ -8,11 +8,8 @@ func (boot *BootApp) RegisterRoutes() {
 	e := boot.Echo
 	baseRoute := e.Group("/api/v1")
 
-	authController := controller.AuthController{
-		DB:      boot.DB,
-		JwtAuth: boot.JwtAuth,
-	}
 	authRoute := baseRoute.Group("/auth")
+	authController := controller.NewAuthController(boot.DB, boot.JwtAuth)
 	authRoute.POST("/login", authController.Login)
 	authRoute.POST("/register", authController.Register)
 }

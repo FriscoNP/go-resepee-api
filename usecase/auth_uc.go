@@ -19,6 +19,19 @@ type AuthUC struct {
 	JwtAuth *middleware.ConfigJWT
 }
 
+type AuthUCInterface interface {
+	Login(email, password string) (res string, err error)
+	Register(req *request.RegisterRequest) (res entity.User, err error)
+}
+
+func NewAuthUC(ctx context.Context, db *gorm.DB, jwtAuth *middleware.ConfigJWT) AuthUCInterface {
+	return &AuthUC{
+		Context: ctx,
+		DB:      db,
+		JwtAuth: jwtAuth,
+	}
+}
+
 func (uc *AuthUC) Login(email, password string) (res string, err error) {
 	userRepo := repository.NewUserRepository(uc.Context, uc.DB)
 

@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	viper.SetConfigFile("config.yaml")
+	viper.SetConfigFile("config/config.yaml")
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
