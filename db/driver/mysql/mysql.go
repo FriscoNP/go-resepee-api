@@ -27,6 +27,7 @@ func (config *ConfigDB) InitialDB() *gorm.DB {
 
 	db.AutoMigrate(
 		&entity.User{},
+		&entity.Material{},
 	)
 
 	return db
