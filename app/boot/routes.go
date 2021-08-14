@@ -15,6 +15,11 @@ func (boot *BootApp) RegisterRoutes() {
 
 	materialRoute := baseRoute.Group("/materials")
 	materialController := controller.NewMaterialController(boot.DB, boot.JwtAuth)
-	materialRoute.GET("", materialController.Get)
-	materialRoute.POST("", materialController.Store)
+	materialRoute.GET("/", materialController.Get)
+	materialRoute.POST("/", materialController.Store)
+
+	recipeCategoryRoute := baseRoute.Group("/categories")
+	recipeCategoryController := controller.NewRecipeCategoryController(boot.DB)
+	recipeCategoryRoute.GET("/", recipeCategoryController.GetAll)
+	recipeCategoryRoute.POST("/", recipeCategoryController.Store)
 }
