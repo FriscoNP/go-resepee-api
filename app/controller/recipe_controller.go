@@ -21,6 +21,18 @@ func NewRecipeController(db *gorm.DB) *RecipeController {
 	}
 }
 
+func (controller *RecipeController) GetAll(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	recipeUC := usecase.NewRecipeUC(ctx, controller.DB)
+	resp, err := recipeUC.GetAll()
+	if err != nil {
+		return SendError(c, http.StatusInternalServerError, err)
+	}
+
+	return SendSuccess(c, resp, "get_all_recipe")
+}
+
 func (controller *RecipeController) Store(c echo.Context) error {
 	ctx := c.Request().Context()
 

@@ -25,6 +25,7 @@ func (boot *BootApp) RegisterRoutes() {
 
 	recipeRoute := baseRoute.Group("/recipes")
 	recipeController := controller.NewRecipeController(boot.DB)
+	recipeRoute.GET("", recipeController.GetAll)
 	recipeRoute.POST("", recipeController.Store)
 	recipeRoute.GET("/:id", recipeController.FindByID)
 }
