@@ -29,6 +29,9 @@ func (config *ConfigDB) InitialDB() *gorm.DB {
 		&entity.User{},
 		&entity.Material{},
 		&entity.RecipeCategory{},
+		&entity.Recipe{},
+		&entity.RecipeMaterial{},
+		&entity.CookStep{},
 	)
 
 	return db
