@@ -3,9 +3,23 @@ package repository
 import (
 	"context"
 	"go-resepee-api/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
+
+type Recipe struct {
+	ID               uint
+	Title            string
+	Description      string
+	ThumbnailFileID  uint
+	RecipeCategoryID uint
+	UserID           uint
+	AverageRating    float64
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        gorm.DeletedAt
+}
 
 type RecipeRepository struct {
 	Context context.Context
@@ -16,6 +30,7 @@ type RecipeRepositoryInterface interface {
 	GetAll() (res []entity.Recipe, err error)
 	FindByID(id int) (res entity.Recipe, err error)
 	Store(recipe *entity.Recipe) (err error)
+	UpdateAverageRating(recipeID int, averageRating float64) error
 }
 
 func NewRecipeRepository(ctx context.Context, db *gorm.DB) RecipeRepositoryInterface {
@@ -50,4 +65,14 @@ func (repo *RecipeRepository) Store(recipe *entity.Recipe) (err error) {
 	}
 
 	return err
+}
+
+func (repo *RecipeRepository) UpdateAverageRating(recipeID int, averageRating float64) error {
+	rec := Recipe{}
+	err := repo.DB.Model(&rec).Where("id = ?", recipeID).Update("average_rating", averageRating).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

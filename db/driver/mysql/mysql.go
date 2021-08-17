@@ -32,6 +32,7 @@ func (config *ConfigDB) InitialDB() *gorm.DB {
 		&entity.Recipe{},
 		&entity.RecipeMaterial{},
 		&entity.CookStep{},
+		&entity.Review{},
 	)
 
 	return db

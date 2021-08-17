@@ -3,11 +3,11 @@ package entity
 import "time"
 
 type Review struct {
-	ID          int       `json:"id"`
-	UserID      int       `json:"user_id"`
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	UserID      uint      `json:"user_id"`
 	Description string    `json:"description"`
 	Rating      int       `json:"rating"`
-	RecipeID    int       `json:"recipe_id"`
+	RecipeID    uint      `json:"recipe_id"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

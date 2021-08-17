@@ -28,4 +28,9 @@ func (boot *BootApp) RegisterRoutes() {
 	recipeRoute.GET("", recipeController.GetAll)
 	recipeRoute.POST("", recipeController.Store)
 	recipeRoute.GET("/:id", recipeController.FindByID)
+
+	reviewRoute := baseRoute.Group("/reviews")
+	reviewController := controller.NewReviewController(boot.DB)
+	reviewRoute.GET("", reviewController.FindByRecipeID)
+	reviewRoute.POST("", reviewController.Store)
 }
