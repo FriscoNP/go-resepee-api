@@ -3,13 +3,23 @@ package repository
 import (
 	"context"
 	"go-resepee-api/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
 
+type Material struct {
+	ID          uint
+	Name        string
+	ImageFileID uint
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   gorm.DeletedAt
+}
+
 type MaterialRepositoryInterface interface {
 	Get() (res []entity.Material, err error)
-	Store(material *entity.Material) error
+	Store(material *entity.Material) (res entity.Material, err error)
 }
 
 type MaterialRepository struct {
@@ -24,20 +34,40 @@ func NewMaterialRepository(ctx context.Context, db *gorm.DB) MaterialRepositoryI
 	}
 }
 
+func (repo *MaterialRepository) ToEntity(rec *Material) entity.Material {
+	return entity.Material{
+		ID:          rec.ID,
+		Name:        rec.Name,
+		ImageFileID: int(rec.ImageFileID),
+		CreatedAt:   rec.CreatedAt,
+		UpdatedAt:   rec.UpdatedAt,
+		DeletedAt:   rec.DeletedAt,
+	}
+}
+
 func (repo *MaterialRepository) Get() (res []entity.Material, err error) {
-	err = repo.DB.Find(&res).Error
+	materials := []Material{}
+	err = repo.DB.Find(&materials).Error
 	if err != nil {
 		return res, err
+	}
+
+	for _, material := range materials {
+		res = append(res, repo.ToEntity(&material))
 	}
 
 	return res, err
 }
 
-func (repo *MaterialRepository) Store(material *entity.Material) error {
-	err := repo.DB.Create(material).Error
+func (repo *MaterialRepository) Store(material *entity.Material) (res entity.Material, err error) {
+	rec := Material{
+		Name:        material.Name,
+		ImageFileID: uint(material.ImageFileID),
+	}
+	err = repo.DB.Create(&rec).Error
 	if err != nil {
-		return err
+		return res, err
 	}
 
-	return err
+	return repo.ToEntity(&rec), err
 }
