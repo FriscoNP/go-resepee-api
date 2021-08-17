@@ -18,7 +18,7 @@ type RecipeUC struct {
 type RecipeUCInterface interface {
 	GetAll() (res []entity.Recipe, err error)
 	FindByID(id int) (recipe entity.Recipe, recipeMaterials []entity.RecipeMaterial, cookSteps []entity.CookStep, err error)
-	Store(req *request.RecipeRequest) (recipe entity.Recipe, recipeMaterials []entity.RecipeMaterial, cookSteps []entity.CookStep, err error)
+	Store(req *request.RecipeRequest, userID int) (recipe entity.Recipe, recipeMaterials []entity.RecipeMaterial, cookSteps []entity.CookStep, err error)
 }
 
 func NewRecipeUC(ctx context.Context, db *gorm.DB) RecipeUCInterface {
@@ -66,7 +66,7 @@ func (uc *RecipeUC) FindByID(id int) (recipe entity.Recipe, recipeMaterials []en
 	return recipe, recipeMaterials, cookSteps, err
 }
 
-func (uc *RecipeUC) Store(req *request.RecipeRequest) (recipe entity.Recipe, recipeMaterials []entity.RecipeMaterial, cookSteps []entity.CookStep, err error) {
+func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (recipe entity.Recipe, recipeMaterials []entity.RecipeMaterial, cookSteps []entity.CookStep, err error) {
 	recipeRepo := repository.NewRecipeRepository(uc.Context, uc.DB)
 	recipeMaterialRepo := repository.NewRecipeMaterialRepository(uc.Context, uc.DB)
 	cookStepRepository := repository.NewCookStepRepository(uc.Context, uc.DB)
@@ -77,6 +77,7 @@ func (uc *RecipeUC) Store(req *request.RecipeRequest) (recipe entity.Recipe, rec
 		Description:      req.Description,
 		ThumbnailFileID:  req.ThumbnailFileID,
 		RecipeCategoryID: req.RecipeCategoryID,
+		UserID:           userID,
 	}
 	recipe, err = recipeRepo.Store(&newRecipe)
 	if err != nil {

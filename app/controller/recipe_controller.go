@@ -3,6 +3,7 @@ package controller
 import (
 	"go-resepee-api/app/controller/request"
 	"go-resepee-api/app/controller/response"
+	"go-resepee-api/app/middleware"
 	"go-resepee-api/usecase"
 	"net/http"
 	"strconv"
@@ -35,6 +36,7 @@ func (controller *RecipeController) GetAll(c echo.Context) error {
 
 func (controller *RecipeController) Store(c echo.Context) error {
 	ctx := c.Request().Context()
+	jwtUser := middleware.GetJWTUser(c)
 
 	req := request.RecipeRequest{}
 	if err := c.Bind(&req); err != nil {
@@ -44,7 +46,7 @@ func (controller *RecipeController) Store(c echo.Context) error {
 	// start transaction
 	tx := controller.DB.Begin()
 	recipeUC := usecase.NewRecipeUC(ctx, tx)
-	recipe, recipeMaterials, cookSteps, err := recipeUC.Store(&req)
+	recipe, recipeMaterials, cookSteps, err := recipeUC.Store(&req, jwtUser.ID)
 	if err != nil {
 		// rollback if error
 		tx.Rollback()

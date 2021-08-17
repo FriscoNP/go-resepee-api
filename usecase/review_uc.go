@@ -16,7 +16,7 @@ type ReviewUC struct {
 }
 
 type ReviewUCInterface interface {
-	Store(req *request.ReviewRequest) (res entity.Review, err error)
+	Store(req *request.ReviewRequest, userID int) (res entity.Review, err error)
 	FindByRecipeID(recipeID int) (res []entity.Review, err error)
 }
 
@@ -27,7 +27,7 @@ func NewReviewUC(ctx context.Context, db *gorm.DB) ReviewUCInterface {
 	}
 }
 
-func (uc *ReviewUC) Store(req *request.ReviewRequest) (res entity.Review, err error) {
+func (uc *ReviewUC) Store(req *request.ReviewRequest, userID int) (res entity.Review, err error) {
 	reviewRepo := repository.NewReviewRepository(uc.DB)
 	recipeRepo := repository.NewRecipeRepository(uc.Context, uc.DB)
 
@@ -55,6 +55,7 @@ func (uc *ReviewUC) Store(req *request.ReviewRequest) (res entity.Review, err er
 	res.RecipeID = uint(req.RecipeID)
 	res.Description = req.Description
 	res.Rating = req.Rating
+	res.UserID = uint(userID)
 
 	err = reviewRepo.Store(&res)
 	if err != nil {
