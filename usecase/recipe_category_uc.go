@@ -43,7 +43,7 @@ func (uc *RecipeCategoryUC) Store(req *request.RecipeCategoryRequest) (res entit
 	recipeCategoryRepo := repository.NewRecipeCategoryRepository(uc.Context, uc.DB)
 
 	res.Name = req.Name
-	err = recipeCategoryRepo.Store(&res)
+	res, err = recipeCategoryRepo.Store(&res)
 	if err != nil {
 		log.Warn(err.Error())
 		return res, err

@@ -48,10 +48,10 @@ func (uc *MaterialUC) Store(req *request.CreateMaterialRequest) (res entity.Mate
 		ImageFileID: req.ImageFileID,
 	}
 
-	err = materialRepo.Store(&material)
+	res, err = materialRepo.Store(&material)
 	if err != nil {
 		return res, err
 	}
 
-	return material, err
+	return res, err
 }

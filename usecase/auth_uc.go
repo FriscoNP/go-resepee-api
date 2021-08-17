@@ -9,7 +9,7 @@ import (
 	"go-resepee-api/entity"
 	"go-resepee-api/helper/security"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -35,10 +35,9 @@ func NewAuthUC(ctx context.Context, db *gorm.DB, jwtAuth *middleware.ConfigJWT) 
 func (uc *AuthUC) Login(email, password string) (res string, err error) {
 	userRepo := repository.NewUserRepository(uc.Context, uc.DB)
 
-	user := entity.User{}
-	err = userRepo.FindByEmail(&user, email)
+	user, err := userRepo.FindByEmail(email)
 	if err != nil {
-		logrus.Warn(err.Error())
+		log.Warn(err.Error())
 		return res, err
 	}
 
@@ -52,11 +51,11 @@ func (uc *AuthUC) Login(email, password string) (res string, err error) {
 }
 
 func (uc *AuthUC) Register(req *request.RegisterRequest) (res entity.User, err error) {
-	user := entity.User{}
 	userRepo := repository.NewUserRepository(uc.Context, uc.DB)
 
-	err = userRepo.FindByEmail(&user, req.Email)
+	_, err = userRepo.FindByEmail(req.Email)
 	if err != nil && err != gorm.ErrRecordNotFound {
+		log.Warn(err.Error())
 		return res, err
 	}
 
@@ -65,13 +64,15 @@ func (uc *AuthUC) Register(req *request.RegisterRequest) (res entity.User, err e
 		return res, err
 	}
 
-	user.Name = req.Name
-	user.Email = req.Email
-	user.Password = hashedPassword
-	err = userRepo.Store(&user)
+	user := entity.User{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: hashedPassword,
+	}
+	res, err = userRepo.Store(&user)
 	if err != nil {
 		return res, err
 	}
 
-	return user, err
+	return res, err
 }

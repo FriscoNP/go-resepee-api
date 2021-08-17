@@ -3,9 +3,18 @@ package repository
 import (
 	"context"
 	"go-resepee-api/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
+
+type RecipeCategory struct {
+	ID        uint
+	Name      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt
+}
 
 type RecipeCategoryRepository struct {
 	Ctx context.Context
@@ -14,7 +23,7 @@ type RecipeCategoryRepository struct {
 
 type RecipeCategoryRepositoryInterface interface {
 	GetAll() (res []entity.RecipeCategory, err error)
-	Store(category *entity.RecipeCategory) error
+	Store(category *entity.RecipeCategory) (res entity.RecipeCategory, err error)
 }
 
 func NewRecipeCategoryRepository(ctx context.Context, db *gorm.DB) RecipeCategoryRepositoryInterface {
@@ -24,20 +33,38 @@ func NewRecipeCategoryRepository(ctx context.Context, db *gorm.DB) RecipeCategor
 	}
 }
 
+func (repo *RecipeCategoryRepository) ToEntity(rec *RecipeCategory) entity.RecipeCategory {
+	return entity.RecipeCategory{
+		ID:        int(rec.ID),
+		Name:      rec.Name,
+		CreatedAt: rec.CreatedAt,
+		UpdatedAt: rec.UpdatedAt,
+		DeletedAt: rec.DeletedAt,
+	}
+}
+
 func (repo *RecipeCategoryRepository) GetAll() (res []entity.RecipeCategory, err error) {
-	err = repo.DB.Find(&res).Error
+	recs := []RecipeCategory{}
+	err = repo.DB.Find(&recs).Error
 	if err != nil {
 		return res, err
+	}
+
+	for _, rec := range recs {
+		res = append(res, repo.ToEntity(&rec))
 	}
 
 	return res, err
 }
 
-func (repo *RecipeCategoryRepository) Store(category *entity.RecipeCategory) error {
-	err := repo.DB.Create(category).Error
+func (repo *RecipeCategoryRepository) Store(category *entity.RecipeCategory) (res entity.RecipeCategory, err error) {
+	rec := RecipeCategory{
+		Name: category.Name,
+	}
+	err = repo.DB.Create(&rec).Error
 	if err != nil {
-		return err
+		return res, err
 	}
 
-	return err
+	return repo.ToEntity(&rec), err
 }

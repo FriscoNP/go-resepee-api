@@ -3,9 +3,19 @@ package repository
 import (
 	"context"
 	"go-resepee-api/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
+
+type RecipeMaterial struct {
+	ID         uint
+	RecipeID   uint
+	MaterialID uint
+	Amount     string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
 
 type RecipeMaterialRepository struct {
 	Context context.Context
@@ -14,7 +24,7 @@ type RecipeMaterialRepository struct {
 
 type RecipeMaterialRepositoryInterface interface {
 	FindByRecipeID(recipeID int) (res []entity.RecipeMaterial, err error)
-	Store(recipeMaterial *entity.RecipeMaterial) (err error)
+	Store(recipeMaterial *entity.RecipeMaterial) (res entity.RecipeMaterial, err error)
 }
 
 func NewRecipeMaterialRepository(ctx context.Context, db *gorm.DB) RecipeMaterialRepositoryInterface {
@@ -24,20 +34,48 @@ func NewRecipeMaterialRepository(ctx context.Context, db *gorm.DB) RecipeMateria
 	}
 }
 
+func (repo *RecipeMaterialRepository) ToEntity(rec *RecipeMaterial) entity.RecipeMaterial {
+	return entity.RecipeMaterial{
+		ID:         rec.ID,
+		RecipeID:   rec.RecipeID,
+		MaterialID: rec.MaterialID,
+		Amount:     rec.Amount,
+		CreatedAt:  rec.CreatedAt,
+		UpdatedAt:  rec.UpdatedAt,
+	}
+}
+
+func (repo *RecipeMaterialRepository) ToRecord(entity *entity.RecipeMaterial) RecipeMaterial {
+	return RecipeMaterial{
+		ID:         entity.ID,
+		RecipeID:   entity.RecipeID,
+		MaterialID: entity.MaterialID,
+		Amount:     entity.Amount,
+		CreatedAt:  entity.CreatedAt,
+		UpdatedAt:  entity.UpdatedAt,
+	}
+}
+
 func (repo *RecipeMaterialRepository) FindByRecipeID(recipeID int) (res []entity.RecipeMaterial, err error) {
-	err = repo.DB.Where("recipe_id = ?", recipeID).Find(&res).Error
+	recs := []RecipeMaterial{}
+	err = repo.DB.Where("recipe_id = ?", recipeID).Find(&recs).Error
 	if err != nil {
 		return res, err
+	}
+
+	for _, rec := range recs {
+		res = append(res, repo.ToEntity(&rec))
 	}
 
 	return res, err
 }
 
-func (repo *RecipeMaterialRepository) Store(recipeMaterial *entity.RecipeMaterial) (err error) {
-	err = repo.DB.Create(recipeMaterial).Error
+func (repo *RecipeMaterialRepository) Store(recipeMaterial *entity.RecipeMaterial) (res entity.RecipeMaterial, err error) {
+	rec := RecipeMaterial{}
+	err = repo.DB.Create(&rec).Error
 	if err != nil {
-		return err
+		return res, err
 	}
 
-	return err
+	return repo.ToEntity(&rec), err
 }

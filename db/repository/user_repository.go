@@ -3,14 +3,25 @@ package repository
 import (
 	"context"
 	"go-resepee-api/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
 
+type User struct {
+	ID        uint `gorm:"primaryKey"`
+	Name      string
+	Email     string
+	Password  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt
+}
+
 type UserRepositoryInterface interface {
-	FindByID(user *entity.User, id int) error
-	FindByEmail(user *entity.User, email string) error
-	Store(user *entity.User) error
+	FindByID(id int) (res entity.User, err error)
+	FindByEmail(email string) (res entity.User, err error)
+	Store(user *entity.User) (res entity.User, err error)
 }
 
 type UserRepository struct {
@@ -25,26 +36,45 @@ func NewUserRepository(ctx context.Context, db *gorm.DB) UserRepositoryInterface
 	}
 }
 
-func (repo *UserRepository) FindByID(user *entity.User, id int) error {
-	err := repo.DB.Find(user, id).Error
-	if err != nil {
-		return err
+func (repo *UserRepository) ToEntity(rec *User) entity.User {
+	return entity.User{
+		ID:        rec.ID,
+		Name:      rec.Name,
+		Email:     rec.Email,
+		Password:  rec.Password,
+		CreatedAt: rec.CreatedAt,
+		UpdatedAt: rec.UpdatedAt,
 	}
-	return err
 }
 
-func (repo *UserRepository) FindByEmail(user *entity.User, email string) error {
-	err := repo.DB.Where("email = ?", email).First(user).Error
+func (repo *UserRepository) FindByID(id int) (res entity.User, err error) {
+	rec := User{}
+	err = repo.DB.Find(&rec, id).Error
 	if err != nil {
-		return err
+		return res, err
 	}
-	return err
+	return repo.ToEntity(&rec), err
 }
 
-func (repo *UserRepository) Store(user *entity.User) error {
-	err := repo.DB.Create(user).Error
+func (repo *UserRepository) FindByEmail(email string) (res entity.User, err error) {
+	rec := User{}
+	err = repo.DB.Where("email = ?", email).First(&rec).Error
 	if err != nil {
-		return err
+		return res, err
 	}
-	return err
+
+	return repo.ToEntity(&rec), err
+}
+
+func (repo *UserRepository) Store(user *entity.User) (res entity.User, err error) {
+	rec := User{
+		Name:     user.Name,
+		Email:    user.Email,
+		Password: user.Password,
+	}
+	err = repo.DB.Create(&rec).Error
+	if err != nil {
+		return res, err
+	}
+	return repo.ToEntity(&rec), err
 }
