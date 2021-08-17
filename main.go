@@ -8,7 +8,6 @@ import (
 	dbDriver "go-resepee-api/db/driver/mysql"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -42,7 +41,6 @@ func main() {
 	}
 
 	e := echo.New()
-	e.Pre(middleware.AddTrailingSlash())
 
 	bootApp := boot.BootApp{
 		DB:        db,
