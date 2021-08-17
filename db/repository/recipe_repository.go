@@ -29,7 +29,7 @@ type RecipeRepository struct {
 type RecipeRepositoryInterface interface {
 	GetAll() (res []entity.Recipe, err error)
 	FindByID(id int) (res entity.Recipe, err error)
-	Store(recipe *entity.Recipe) (err error)
+	Store(recipe *entity.Recipe) (res entity.Recipe, err error)
 	UpdateAverageRating(recipeID int, averageRating float64) error
 }
 
@@ -40,31 +40,68 @@ func NewRecipeRepository(ctx context.Context, db *gorm.DB) RecipeRepositoryInter
 	}
 }
 
+func (repo *RecipeRepository) ToEntity(rec *Recipe) entity.Recipe {
+	return entity.Recipe{
+		ID:               rec.ID,
+		Title:            rec.Title,
+		Description:      rec.Description,
+		ThumbnailFileID:  int(rec.ThumbnailFileID),
+		RecipeCategoryID: int(rec.RecipeCategoryID),
+		UserID:           int(rec.UserID),
+		AverageRating:    rec.AverageRating,
+		CreatedAt:        rec.CreatedAt,
+		UpdatedAt:        rec.UpdatedAt,
+		DeletedAt:        rec.DeletedAt,
+	}
+}
+
+func (repo *RecipeRepository) ToRecord(entity *entity.Recipe) Recipe {
+	return Recipe{
+		ID:               entity.ID,
+		Title:            entity.Title,
+		Description:      entity.Description,
+		ThumbnailFileID:  uint(entity.ThumbnailFileID),
+		RecipeCategoryID: uint(entity.RecipeCategoryID),
+		UserID:           uint(entity.UserID),
+		AverageRating:    entity.AverageRating,
+		CreatedAt:        entity.CreatedAt,
+		UpdatedAt:        entity.UpdatedAt,
+		DeletedAt:        entity.DeletedAt,
+	}
+}
+
 func (repo *RecipeRepository) GetAll() (res []entity.Recipe, err error) {
-	err = repo.DB.Find(&res).Error
+	recs := []Recipe{}
+	err = repo.DB.Find(&recs).Error
 	if err != nil {
 		return res, err
+	}
+
+	for _, rec := range recs {
+		res = append(res, repo.ToEntity(&rec))
 	}
 
 	return res, err
 }
 
 func (repo *RecipeRepository) FindByID(id int) (res entity.Recipe, err error) {
-	err = repo.DB.Find(&res, id).Error
+	rec := Recipe{}
+	err = repo.DB.Find(&rec, id).Error
 	if err != nil {
 		return res, err
 	}
 
-	return res, err
+	return repo.ToEntity(&rec), err
 }
 
-func (repo *RecipeRepository) Store(recipe *entity.Recipe) (err error) {
-	err = repo.DB.Create(recipe).Error
+func (repo *RecipeRepository) Store(recipe *entity.Recipe) (res entity.Recipe, err error) {
+	rec := repo.ToRecord(recipe)
+	err = repo.DB.Create(&rec).Error
 	if err != nil {
-		return err
+		return res, err
 	}
 
-	return err
+	return repo.ToEntity(&rec), err
 }
 
 func (repo *RecipeRepository) UpdateAverageRating(recipeID int, averageRating float64) error {

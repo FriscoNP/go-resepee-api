@@ -72,13 +72,13 @@ func (uc *RecipeUC) Store(req *request.RecipeRequest) (recipe entity.Recipe, rec
 	cookStepRepository := repository.NewCookStepRepository(uc.Context, uc.DB)
 
 	// insert recipe
-	recipe = entity.Recipe{
+	newRecipe := entity.Recipe{
 		Title:            req.Title,
 		Description:      req.Description,
 		ThumbnailFileID:  req.ThumbnailFileID,
 		RecipeCategoryID: req.RecipeCategoryID,
 	}
-	err = recipeRepo.Store(&recipe)
+	recipe, err = recipeRepo.Store(&newRecipe)
 	if err != nil {
 		log.Warn(err.Error())
 		return recipe, recipeMaterials, cookSteps, err
@@ -86,12 +86,12 @@ func (uc *RecipeUC) Store(req *request.RecipeRequest) (recipe entity.Recipe, rec
 
 	// insert recipe materials
 	for _, recipeMaterial := range req.Materials {
-		recipeMaterialEntity := entity.RecipeMaterial{
+		data := entity.RecipeMaterial{
 			RecipeID:   recipe.ID,
 			MaterialID: uint(recipeMaterial.MaterialID),
 			Amount:     recipeMaterial.Amount,
 		}
-		err = recipeMaterialRepo.Store(&recipeMaterialEntity)
+		recipeMaterialEntity, err := recipeMaterialRepo.Store(&data)
 		if err != nil {
 			log.Warn(err.Error())
 			return recipe, recipeMaterials, cookSteps, err
@@ -101,12 +101,12 @@ func (uc *RecipeUC) Store(req *request.RecipeRequest) (recipe entity.Recipe, rec
 
 	// insert cook steps
 	for _, cookStep := range req.CookingSteps {
-		cookStepEntity := entity.CookStep{
+		data := entity.CookStep{
 			RecipeID:    recipe.ID,
 			Description: cookStep.Description,
 			Order:       cookStep.Order,
 		}
-		err = cookStepRepository.Store(&cookStepEntity)
+		cookStepEntity, err := cookStepRepository.Store(&data)
 		if err != nil {
 			log.Warn(err.Error())
 			return recipe, recipeMaterials, cookSteps, err
