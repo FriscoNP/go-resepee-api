@@ -1,19 +1,14 @@
 package controller
 
 import (
+	"go-resepee-api/app/controller/response"
 	"net/http"
 
 	echo "github.com/labstack/echo/v4"
 )
 
-type BaseResponse struct {
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
-	Error   string      `json:"error"`
-}
-
 func SendSuccess(c echo.Context, data interface{}, message string) error {
-	resp := BaseResponse{
+	resp := response.BaseResponse{
 		Message: message,
 		Data:    data,
 	}
@@ -21,7 +16,7 @@ func SendSuccess(c echo.Context, data interface{}, message string) error {
 }
 
 func SendError(c echo.Context, status int, err error) error {
-	resp := BaseResponse{
+	resp := response.BaseResponse{
 		Error: err.Error(),
 	}
 	return c.JSON(status, resp)
