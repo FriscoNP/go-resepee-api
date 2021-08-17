@@ -33,7 +33,7 @@ func (jwtConf *ConfigJWT) Init() middleware.JWTConfig {
 }
 
 func (jwtConf *ConfigJWT) GenerateToken(userID int) string {
-	claims := JwtCustomClaims{
+	claims := &JwtCustomClaims{
 		userID,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(int64(jwtConf.ExpiresDuration))).Unix(),

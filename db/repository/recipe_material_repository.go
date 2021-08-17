@@ -71,7 +71,7 @@ func (repo *RecipeMaterialRepository) FindByRecipeID(recipeID int) (res []entity
 }
 
 func (repo *RecipeMaterialRepository) Store(recipeMaterial *entity.RecipeMaterial) (res entity.RecipeMaterial, err error) {
-	rec := RecipeMaterial{}
+	rec := repo.ToRecord(recipeMaterial)
 	err = repo.DB.Create(&rec).Error
 	if err != nil {
 		return res, err
