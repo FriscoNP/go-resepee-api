@@ -9,7 +9,6 @@ import (
 	"go-resepee-api/entity"
 	"go-resepee-api/helper/security"
 	"go-resepee-api/usecase"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,7 +18,6 @@ import (
 
 var (
 	userRepository mocks.UserRepositoryInterface
-	authUC         usecase.AuthUCInterface
 
 	mockRegisterRequest = request.RegisterRequest{
 		Name:                 "user test",
@@ -27,16 +25,9 @@ var (
 		Password:             "password",
 		PasswordConfirmation: "password",
 	}
-)
 
-func setup() {
 	authUC = usecase.NewAuthUC(context.Background(), &userRepository, &middleware.ConfigJWT{})
-}
-
-func TestMain(m *testing.M) {
-	setup()
-	os.Exit(m.Run())
-}
+)
 
 func TestRegister(t *testing.T) {
 	t.Run("register happy case", func(t *testing.T) {
