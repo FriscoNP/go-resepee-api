@@ -3,6 +3,7 @@ package controller
 import (
 	"go-resepee-api/app/controller/request"
 	"go-resepee-api/app/middleware"
+	"go-resepee-api/db/repository"
 	"go-resepee-api/usecase"
 	"net/http"
 	"strconv"
@@ -24,7 +25,11 @@ func NewRecipeController(db *gorm.DB) *RecipeController {
 func (controller *RecipeController) GetAll(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	recipeUC := usecase.NewRecipeUC(ctx, controller.DB)
+	recipeRepo := repository.NewRecipeRepository(ctx, controller.DB)
+	recipeMaterialRepo := repository.NewRecipeMaterialRepository(ctx, controller.DB)
+	cookStepRepo := repository.NewCookStepRepository(ctx, controller.DB)
+
+	recipeUC := usecase.NewRecipeUC(ctx, recipeRepo, recipeMaterialRepo, cookStepRepo)
 	resp, err := recipeUC.GetAll()
 	if err != nil {
 		return SendError(c, http.StatusInternalServerError, err)
@@ -44,7 +49,11 @@ func (controller *RecipeController) Store(c echo.Context) error {
 
 	// start transaction
 	tx := controller.DB.Begin()
-	recipeUC := usecase.NewRecipeUC(ctx, tx)
+	recipeRepo := repository.NewRecipeRepository(ctx, tx)
+	recipeMaterialRepo := repository.NewRecipeMaterialRepository(ctx, tx)
+	cookStepRepo := repository.NewCookStepRepository(ctx, tx)
+
+	recipeUC := usecase.NewRecipeUC(ctx, recipeRepo, recipeMaterialRepo, cookStepRepo)
 	recipe, err := recipeUC.Store(&req, jwtUser.ID)
 	if err != nil {
 		// rollback if error
@@ -65,7 +74,11 @@ func (controller *RecipeController) FindByID(c echo.Context) error {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	recipeUC := usecase.NewRecipeUC(ctx, controller.DB)
+	recipeRepo := repository.NewRecipeRepository(ctx, controller.DB)
+	recipeMaterialRepo := repository.NewRecipeMaterialRepository(ctx, controller.DB)
+	cookStepRepo := repository.NewCookStepRepository(ctx, controller.DB)
+
+	recipeUC := usecase.NewRecipeUC(ctx, recipeRepo, recipeMaterialRepo, cookStepRepo)
 	recipe, err := recipeUC.FindByID(recipeID)
 	if err != nil {
 		return SendError(c, http.StatusInternalServerError, err)
