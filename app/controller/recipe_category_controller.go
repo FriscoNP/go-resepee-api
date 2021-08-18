@@ -2,6 +2,7 @@ package controller
 
 import (
 	"go-resepee-api/app/controller/request"
+	"go-resepee-api/db/repository"
 	"go-resepee-api/usecase"
 	"net/http"
 
@@ -23,7 +24,8 @@ func NewRecipeCategoryController(db *gorm.DB) *RecipeCategoryController {
 func (controller *RecipeCategoryController) GetAll(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	recipeCategoryUC := usecase.NewRecipeCategoryUC(ctx, controller.DB)
+	recipeCategoryRepo := repository.NewRecipeCategoryRepository(ctx, controller.DB)
+	recipeCategoryUC := usecase.NewRecipeCategoryUC(ctx, recipeCategoryRepo)
 	resp, err := recipeCategoryUC.GetAll()
 	if err != nil {
 		log.Warn(err.Error())
@@ -41,7 +43,8 @@ func (controller *RecipeCategoryController) Store(c echo.Context) error {
 		return SendError(c, http.StatusBadRequest, err)
 	}
 
-	recipeCategoryUC := usecase.NewRecipeCategoryUC(ctx, controller.DB)
+	recipeCategoryRepo := repository.NewRecipeCategoryRepository(ctx, controller.DB)
+	recipeCategoryUC := usecase.NewRecipeCategoryUC(ctx, recipeCategoryRepo)
 	resp, err := recipeCategoryUC.Store(&req)
 	if err != nil {
 		log.Warn(err.Error())

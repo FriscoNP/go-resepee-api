@@ -7,12 +7,11 @@ import (
 	"go-resepee-api/entity"
 
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 type RecipeCategoryUC struct {
-	Context context.Context
-	DB      *gorm.DB
+	Context    context.Context
+	Repository repository.RecipeCategoryRepositoryInterface
 }
 
 type RecipeCategoryUCInterface interface {
@@ -20,17 +19,15 @@ type RecipeCategoryUCInterface interface {
 	Store(req *request.RecipeCategoryRequest) (res entity.RecipeCategory, err error)
 }
 
-func NewRecipeCategoryUC(ctx context.Context, db *gorm.DB) RecipeCategoryUCInterface {
+func NewRecipeCategoryUC(ctx context.Context, repo repository.RecipeCategoryRepositoryInterface) RecipeCategoryUCInterface {
 	return &RecipeCategoryUC{
-		Context: ctx,
-		DB:      db,
+		Context:    ctx,
+		Repository: repo,
 	}
 }
 
 func (uc *RecipeCategoryUC) GetAll() (res []entity.RecipeCategory, err error) {
-	recipeCategoryRepo := repository.NewRecipeCategoryRepository(uc.Context, uc.DB)
-
-	res, err = recipeCategoryRepo.GetAll()
+	res, err = uc.Repository.GetAll()
 	if err != nil {
 		log.Warn(err.Error())
 		return res, err
@@ -40,10 +37,8 @@ func (uc *RecipeCategoryUC) GetAll() (res []entity.RecipeCategory, err error) {
 }
 
 func (uc *RecipeCategoryUC) Store(req *request.RecipeCategoryRequest) (res entity.RecipeCategory, err error) {
-	recipeCategoryRepo := repository.NewRecipeCategoryRepository(uc.Context, uc.DB)
-
 	res.Name = req.Name
-	res, err = recipeCategoryRepo.Store(&res)
+	res, err = uc.Repository.Store(&res)
 	if err != nil {
 		log.Warn(err.Error())
 		return res, err
