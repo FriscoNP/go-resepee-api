@@ -35,4 +35,8 @@ func (boot *BootApp) RegisterRoutes() {
 	reviewController := controller.NewReviewController(boot.DB)
 	reviewRoute.GET("", reviewController.FindByRecipeID, middleware.JWTWithConfig(boot.JwtConfig))
 	reviewRoute.POST("", reviewController.Store, middleware.JWTWithConfig(boot.JwtConfig))
+
+	fileRoute := baseRoute.Group("/files")
+	fileController := controller.NewFileController(boot.DB)
+	fileRoute.POST("", fileController.Store, middleware.JWTWithConfig(boot.JwtConfig))
 }
