@@ -9,8 +9,9 @@ import (
 )
 
 type CookStep struct {
-	ID          uint
+	ID          uint `gorm:"primaryKey"`
 	RecipeID    uint
+	Recipe      Recipe
 	Description string
 	Order       int
 	CreatedAt   time.Time
