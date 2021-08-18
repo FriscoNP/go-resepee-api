@@ -2,7 +2,6 @@ package controller
 
 import (
 	"go-resepee-api/app/controller/request"
-	"go-resepee-api/app/controller/response"
 	"go-resepee-api/app/middleware"
 	"go-resepee-api/usecase"
 	"net/http"
@@ -46,7 +45,7 @@ func (controller *RecipeController) Store(c echo.Context) error {
 	// start transaction
 	tx := controller.DB.Begin()
 	recipeUC := usecase.NewRecipeUC(ctx, tx)
-	recipe, recipeMaterials, cookSteps, err := recipeUC.Store(&req, jwtUser.ID)
+	recipe, err := recipeUC.Store(&req, jwtUser.ID)
 	if err != nil {
 		// rollback if error
 		tx.Rollback()
@@ -55,43 +54,7 @@ func (controller *RecipeController) Store(c echo.Context) error {
 	// commit transaction
 	tx.Commit()
 
-	recipeMaterialResponses := []response.RecipeMaterialResponse{}
-	for _, recipeMaterial := range recipeMaterials {
-		recipeMaterialResponse := response.RecipeMaterialResponse{
-			Material: response.MaterialResponse{
-				ID: int(recipeMaterial.ID),
-			},
-			Amount: recipeMaterial.Amount,
-		}
-		recipeMaterialResponses = append(recipeMaterialResponses, recipeMaterialResponse)
-	}
-
-	cookStepResponses := []response.CookStepResponse{}
-	for _, cookStep := range cookSteps {
-		cookStepResponse := response.CookStepResponse{
-			ID:          int(cookStep.ID),
-			Description: cookStep.Description,
-			Order:       cookStep.Order,
-		}
-		cookStepResponses = append(cookStepResponses, cookStepResponse)
-	}
-
-	resp := response.RecipeResponse{
-		ID:               int(recipe.ID),
-		Title:            recipe.Title,
-		Description:      recipe.Description,
-		ThumbnailFileID:  recipe.ThumbnailFileID,
-		ThumbnailFile:    response.FileResponse{},
-		RecipeCategoryID: recipe.RecipeCategoryID,
-		RecipeCategory:   response.RecipeCategoryResponse{},
-		UserID:           recipe.UserID,
-		User:             response.RecipeUserResponse{},
-		AverageRating:    recipe.AverageRating,
-		Materials:        recipeMaterialResponses,
-		CookSteps:        cookStepResponses,
-	}
-
-	return SendSuccess(c, resp, "recipe_created")
+	return SendSuccess(c, recipe, "recipe_created")
 }
 
 func (controller *RecipeController) FindByID(c echo.Context) error {
@@ -103,46 +66,10 @@ func (controller *RecipeController) FindByID(c echo.Context) error {
 	}
 
 	recipeUC := usecase.NewRecipeUC(ctx, controller.DB)
-	recipe, recipeMaterials, cookSteps, err := recipeUC.FindByID(recipeID)
+	recipe, err := recipeUC.FindByID(recipeID)
 	if err != nil {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	recipeMaterialResponses := []response.RecipeMaterialResponse{}
-	for _, recipeMaterial := range recipeMaterials {
-		recipeMaterialResponse := response.RecipeMaterialResponse{
-			Material: response.MaterialResponse{
-				ID: int(recipeMaterial.ID),
-			},
-			Amount: recipeMaterial.Amount,
-		}
-		recipeMaterialResponses = append(recipeMaterialResponses, recipeMaterialResponse)
-	}
-
-	cookStepResponses := []response.CookStepResponse{}
-	for _, cookStep := range cookSteps {
-		cookStepResponse := response.CookStepResponse{
-			ID:          int(cookStep.ID),
-			Description: cookStep.Description,
-			Order:       cookStep.Order,
-		}
-		cookStepResponses = append(cookStepResponses, cookStepResponse)
-	}
-
-	resp := response.RecipeResponse{
-		ID:               int(recipe.ID),
-		Title:            recipe.Title,
-		Description:      recipe.Description,
-		ThumbnailFileID:  recipe.ThumbnailFileID,
-		ThumbnailFile:    response.FileResponse{},
-		RecipeCategoryID: recipe.RecipeCategoryID,
-		RecipeCategory:   response.RecipeCategoryResponse{},
-		UserID:           recipe.UserID,
-		User:             response.RecipeUserResponse{},
-		AverageRating:    recipe.AverageRating,
-		Materials:        recipeMaterialResponses,
-		CookSteps:        cookStepResponses,
-	}
-
-	return SendSuccess(c, resp, "get_detail_recipe")
+	return SendSuccess(c, recipe, "get_detail_recipe")
 }

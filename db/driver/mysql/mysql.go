@@ -2,7 +2,7 @@ package mysql_driver
 
 import (
 	"fmt"
-	"go-resepee-api/entity"
+	"go-resepee-api/db/repository"
 	"log"
 
 	"gorm.io/driver/mysql"
@@ -26,13 +26,14 @@ func (config *ConfigDB) InitialDB() *gorm.DB {
 	}
 
 	db.AutoMigrate(
-		&entity.User{},
-		&entity.Material{},
-		&entity.RecipeCategory{},
-		&entity.Recipe{},
-		&entity.RecipeMaterial{},
-		&entity.CookStep{},
-		&entity.Review{},
+		&repository.User{},
+		&repository.Material{},
+		&repository.RecipeCategory{},
+		&repository.Recipe{},
+		&repository.RecipeMaterial{},
+		&repository.CookStep{},
+		&repository.Review{},
+		&repository.File{},
 	)
 
 	return db

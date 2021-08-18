@@ -9,7 +9,7 @@ import (
 )
 
 type RecipeCategory struct {
-	ID        uint
+	ID        int `gorm:"primaryKey"`
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -6,15 +6,19 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Recipe struct {
-	ID               uint
+	ID               uint `gorm:"primaryKey"`
 	Title            string
 	Description      string
-	ThumbnailFileID  uint
-	RecipeCategoryID uint
-	UserID           uint
+	ThumbnailFileID  int
+	ThumbnailFile    File
+	RecipeCategoryID int
+	RecipeCategory   RecipeCategory
+	UserID           int
+	User             User
 	AverageRating    float64
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
@@ -60,9 +64,9 @@ func (repo *RecipeRepository) ToRecord(entity *entity.Recipe) Recipe {
 		ID:               entity.ID,
 		Title:            entity.Title,
 		Description:      entity.Description,
-		ThumbnailFileID:  uint(entity.ThumbnailFileID),
-		RecipeCategoryID: uint(entity.RecipeCategoryID),
-		UserID:           uint(entity.UserID),
+		ThumbnailFileID:  entity.ThumbnailFileID,
+		RecipeCategoryID: entity.RecipeCategoryID,
+		UserID:           entity.UserID,
 		AverageRating:    entity.AverageRating,
 		CreatedAt:        entity.CreatedAt,
 		UpdatedAt:        entity.UpdatedAt,
@@ -86,7 +90,7 @@ func (repo *RecipeRepository) GetAll() (res []entity.Recipe, err error) {
 
 func (repo *RecipeRepository) FindByID(id int) (res entity.Recipe, err error) {
 	rec := Recipe{}
-	err = repo.DB.Find(&rec, id).Error
+	err = repo.DB.Preload(clause.Associations).Find(&rec, id).Error
 	if err != nil {
 		return res, err
 	}

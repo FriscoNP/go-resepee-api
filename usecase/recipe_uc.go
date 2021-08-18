@@ -17,8 +17,8 @@ type RecipeUC struct {
 
 type RecipeUCInterface interface {
 	GetAll() (res []entity.Recipe, err error)
-	FindByID(id int) (recipe entity.Recipe, recipeMaterials []entity.RecipeMaterial, cookSteps []entity.CookStep, err error)
-	Store(req *request.RecipeRequest, userID int) (recipe entity.Recipe, recipeMaterials []entity.RecipeMaterial, cookSteps []entity.CookStep, err error)
+	FindByID(id int) (recipe entity.Recipe, err error)
+	Store(req *request.RecipeRequest, userID int) (recipe entity.Recipe, err error)
 }
 
 func NewRecipeUC(ctx context.Context, db *gorm.DB) RecipeUCInterface {
@@ -40,7 +40,7 @@ func (uc *RecipeUC) GetAll() (res []entity.Recipe, err error) {
 	return res, err
 }
 
-func (uc *RecipeUC) FindByID(id int) (recipe entity.Recipe, recipeMaterials []entity.RecipeMaterial, cookSteps []entity.CookStep, err error) {
+func (uc *RecipeUC) FindByID(id int) (recipe entity.Recipe, err error) {
 	recipeRepo := repository.NewRecipeRepository(uc.Context, uc.DB)
 	recipeMaterialRepo := repository.NewRecipeMaterialRepository(uc.Context, uc.DB)
 	cookStepRepository := repository.NewCookStepRepository(uc.Context, uc.DB)
@@ -48,25 +48,25 @@ func (uc *RecipeUC) FindByID(id int) (recipe entity.Recipe, recipeMaterials []en
 	recipe, err = recipeRepo.FindByID(id)
 	if err != nil {
 		log.Warn(err.Error())
-		return recipe, recipeMaterials, cookSteps, err
+		return recipe, err
 	}
 
-	recipeMaterials, err = recipeMaterialRepo.FindByRecipeID(id)
+	recipe.RecipeMaterials, err = recipeMaterialRepo.FindByRecipeID(id)
 	if err != nil {
 		log.Warn(err.Error())
-		return recipe, recipeMaterials, cookSteps, err
+		return recipe, err
 	}
 
-	cookSteps, err = cookStepRepository.FindByRecipeID(id)
+	recipe.CookSteps, err = cookStepRepository.FindByRecipeID(id)
 	if err != nil {
 		log.Warn(err.Error())
-		return recipe, recipeMaterials, cookSteps, err
+		return recipe, err
 	}
 
-	return recipe, recipeMaterials, cookSteps, err
+	return recipe, err
 }
 
-func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (recipe entity.Recipe, recipeMaterials []entity.RecipeMaterial, cookSteps []entity.CookStep, err error) {
+func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (recipe entity.Recipe, err error) {
 	recipeRepo := repository.NewRecipeRepository(uc.Context, uc.DB)
 	recipeMaterialRepo := repository.NewRecipeMaterialRepository(uc.Context, uc.DB)
 	cookStepRepository := repository.NewCookStepRepository(uc.Context, uc.DB)
@@ -82,7 +82,7 @@ func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (recipe entity
 	recipe, err = recipeRepo.Store(&newRecipe)
 	if err != nil {
 		log.Warn(err.Error())
-		return recipe, recipeMaterials, cookSteps, err
+		return recipe, err
 	}
 
 	// insert recipe materials
@@ -95,9 +95,9 @@ func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (recipe entity
 		recipeMaterialEntity, err := recipeMaterialRepo.Store(&data)
 		if err != nil {
 			log.Warn(err.Error())
-			return recipe, recipeMaterials, cookSteps, err
+			return recipe, err
 		}
-		recipeMaterials = append(recipeMaterials, recipeMaterialEntity)
+		recipe.RecipeMaterials = append(recipe.RecipeMaterials, recipeMaterialEntity)
 	}
 
 	// insert cook steps
@@ -110,10 +110,10 @@ func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (recipe entity
 		cookStepEntity, err := cookStepRepository.Store(&data)
 		if err != nil {
 			log.Warn(err.Error())
-			return recipe, recipeMaterials, cookSteps, err
+			return recipe, err
 		}
-		cookSteps = append(cookSteps, cookStepEntity)
+		recipe.CookSteps = append(recipe.CookSteps, cookStepEntity)
 	}
 
-	return recipe, recipeMaterials, cookSteps, err
+	return recipe, err
 }

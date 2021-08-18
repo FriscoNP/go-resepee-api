@@ -8,11 +8,13 @@ import (
 )
 
 type Review struct {
-	ID          int
-	RecipeID    int
-	UserID      int
+	ID          uint `gorm:"primaryKey"`
+	UserID      uint
+	User        User
 	Description string
 	Rating      int
+	RecipeID    uint
+	Recipe      Recipe
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

@@ -9,9 +9,10 @@ import (
 )
 
 type RecipeMaterial struct {
-	ID         uint
+	ID         uint `gorm:"primaryKey"`
 	RecipeID   uint
 	MaterialID uint
+	Material   Material
 	Amount     string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time

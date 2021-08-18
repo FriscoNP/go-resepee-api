@@ -9,9 +9,10 @@ import (
 )
 
 type Material struct {
-	ID          uint
+	ID          uint `gorm:"primaryKey"`
 	Name        string
-	ImageFileID uint
+	ImageFileID int
+	ImageFile   File
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   gorm.DeletedAt
@@ -62,7 +63,7 @@ func (repo *MaterialRepository) Get() (res []entity.Material, err error) {
 func (repo *MaterialRepository) Store(material *entity.Material) (res entity.Material, err error) {
 	rec := Material{
 		Name:        material.Name,
-		ImageFileID: uint(material.ImageFileID),
+		ImageFileID: material.ImageFileID,
 	}
 	err = repo.DB.Create(&rec).Error
 	if err != nil {
