@@ -14,28 +14,26 @@ import (
 )
 
 type AuthUC struct {
-	Context context.Context
-	DB      *gorm.DB
-	JwtAuth *middleware.ConfigJWT
+	Context        context.Context
+	JwtAuth        *middleware.ConfigJWT
+	UserRepository repository.UserRepositoryInterface
 }
 
 type AuthUCInterface interface {
 	Login(email, password string) (res string, err error)
-	Register(req *request.RegisterRequest) (res entity.User, err error)
+	Register(req *request.RegisterRequest) (err error)
 }
 
-func NewAuthUC(ctx context.Context, db *gorm.DB, jwtAuth *middleware.ConfigJWT) AuthUCInterface {
+func NewAuthUC(ctx context.Context, repo repository.UserRepositoryInterface, jwtAuth *middleware.ConfigJWT) AuthUCInterface {
 	return &AuthUC{
-		Context: ctx,
-		DB:      db,
-		JwtAuth: jwtAuth,
+		Context:        ctx,
+		UserRepository: repo,
+		JwtAuth:        jwtAuth,
 	}
 }
 
 func (uc *AuthUC) Login(email, password string) (res string, err error) {
-	userRepo := repository.NewUserRepository(uc.Context, uc.DB)
-
-	user, err := userRepo.FindByEmail(email)
+	user, err := uc.UserRepository.FindByEmail(email)
 	if err != nil {
 		log.Warn(err.Error())
 		return res, err
@@ -50,18 +48,19 @@ func (uc *AuthUC) Login(email, password string) (res string, err error) {
 	return res, err
 }
 
-func (uc *AuthUC) Register(req *request.RegisterRequest) (res entity.User, err error) {
-	userRepo := repository.NewUserRepository(uc.Context, uc.DB)
-
-	_, err = userRepo.FindByEmail(req.Email)
+func (uc *AuthUC) Register(req *request.RegisterRequest) (err error) {
+	existedUser, err := uc.UserRepository.FindByEmail(req.Email)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		log.Warn(err.Error())
-		return res, err
+		return err
+	}
+	if existedUser.Email != "" {
+		return errors.New("email_registered")
 	}
 
 	hashedPassword, err := security.Hash(req.Password)
 	if err != nil {
-		return res, err
+		return err
 	}
 
 	user := entity.User{
@@ -69,10 +68,10 @@ func (uc *AuthUC) Register(req *request.RegisterRequest) (res entity.User, err e
 		Email:    req.Email,
 		Password: hashedPassword,
 	}
-	res, err = userRepo.Store(&user)
+	err = uc.UserRepository.Store(&user)
 	if err != nil {
-		return res, err
+		return err
 	}
 
-	return res, err
+	return err
 }
