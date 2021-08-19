@@ -9,3 +9,5 @@ database:
 jwt:
   secret: iBmJGmljD71NKbKbSceK
   expired: 1
+abstract_api:
+  key: fa5bbad97cc54246a269253751efe3e6
