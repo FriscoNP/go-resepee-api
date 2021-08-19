@@ -3,6 +3,7 @@ package controller
 import (
 	"go-resepee-api/app/controller/request"
 	"go-resepee-api/app/middleware"
+	"go-resepee-api/db/repository"
 	"go-resepee-api/usecase"
 	"net/http"
 
@@ -26,7 +27,8 @@ func NewMaterialController(db *gorm.DB, jwtAuth *middleware.ConfigJWT) *Material
 func (mc *MaterialController) Get(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	materialUC := usecase.NewMaterialUC(ctx, mc.DB, mc.JwtAuth)
+	materialRepo := repository.NewMaterialRepository(ctx, mc.DB)
+	materialUC := usecase.NewMaterialUC(ctx, materialRepo)
 	materials, err := materialUC.Get()
 	if err != nil {
 		log.Warn(err.Error())
@@ -45,7 +47,8 @@ func (mc *MaterialController) Store(c echo.Context) error {
 		return SendError(c, http.StatusBadRequest, err)
 	}
 
-	materialUC := usecase.NewMaterialUC(ctx, mc.DB, mc.JwtAuth)
+	materialRepo := repository.NewMaterialRepository(ctx, mc.DB)
+	materialUC := usecase.NewMaterialUC(ctx, materialRepo)
 	material, err := materialUC.Store(&req)
 	if err != nil {
 		return SendError(c, http.StatusInternalServerError, err)

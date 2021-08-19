@@ -7,12 +7,13 @@ import (
 	"go-resepee-api/entity"
 
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 type RecipeUC struct {
-	Context context.Context
-	DB      *gorm.DB
+	Context                  context.Context
+	RecipeRepository         repository.RecipeRepositoryInterface
+	RecipeMaterialRepository repository.RecipeMaterialRepositoryInterface
+	CookStepRepository       repository.CookStepRepositoryInterface
 }
 
 type RecipeUCInterface interface {
@@ -21,17 +22,21 @@ type RecipeUCInterface interface {
 	Store(req *request.RecipeRequest, userID int) (recipe entity.Recipe, err error)
 }
 
-func NewRecipeUC(ctx context.Context, db *gorm.DB) RecipeUCInterface {
+func NewRecipeUC(
+	ctx context.Context,
+	recipeRepo repository.RecipeRepositoryInterface,
+	recipeMaterialRepo repository.RecipeMaterialRepositoryInterface,
+	cookStepRepo repository.CookStepRepositoryInterface) RecipeUCInterface {
 	return &RecipeUC{
-		Context: ctx,
-		DB:      db,
+		Context:                  ctx,
+		RecipeRepository:         recipeRepo,
+		RecipeMaterialRepository: recipeMaterialRepo,
+		CookStepRepository:       cookStepRepo,
 	}
 }
 
 func (uc *RecipeUC) GetAll() (res []entity.Recipe, err error) {
-	recipeRepo := repository.NewRecipeRepository(uc.Context, uc.DB)
-
-	res, err = recipeRepo.GetAll()
+	res, err = uc.RecipeRepository.GetAll()
 	if err != nil {
 		log.Warn(err.Error())
 		return res, err
@@ -40,37 +45,29 @@ func (uc *RecipeUC) GetAll() (res []entity.Recipe, err error) {
 	return res, err
 }
 
-func (uc *RecipeUC) FindByID(id int) (recipe entity.Recipe, err error) {
-	recipeRepo := repository.NewRecipeRepository(uc.Context, uc.DB)
-	recipeMaterialRepo := repository.NewRecipeMaterialRepository(uc.Context, uc.DB)
-	cookStepRepository := repository.NewCookStepRepository(uc.Context, uc.DB)
-
-	recipe, err = recipeRepo.FindByID(id)
+func (uc *RecipeUC) FindByID(id int) (res entity.Recipe, err error) {
+	recipe, err := uc.RecipeRepository.FindByID(id)
 	if err != nil {
 		log.Warn(err.Error())
-		return recipe, err
+		return res, err
 	}
 
-	recipe.RecipeMaterials, err = recipeMaterialRepo.FindByRecipeID(id)
+	recipe.RecipeMaterials, err = uc.RecipeMaterialRepository.FindByRecipeID(id)
 	if err != nil {
 		log.Warn(err.Error())
-		return recipe, err
+		return res, err
 	}
 
-	recipe.CookSteps, err = cookStepRepository.FindByRecipeID(id)
+	recipe.CookSteps, err = uc.CookStepRepository.FindByRecipeID(id)
 	if err != nil {
 		log.Warn(err.Error())
-		return recipe, err
+		return res, err
 	}
 
 	return recipe, err
 }
 
-func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (recipe entity.Recipe, err error) {
-	recipeRepo := repository.NewRecipeRepository(uc.Context, uc.DB)
-	recipeMaterialRepo := repository.NewRecipeMaterialRepository(uc.Context, uc.DB)
-	cookStepRepository := repository.NewCookStepRepository(uc.Context, uc.DB)
-
+func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (res entity.Recipe, err error) {
 	// insert recipe
 	newRecipe := entity.Recipe{
 		Title:            req.Title,
@@ -79,10 +76,10 @@ func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (recipe entity
 		RecipeCategoryID: req.RecipeCategoryID,
 		UserID:           userID,
 	}
-	recipe, err = recipeRepo.Store(&newRecipe)
+	recipe, err := uc.RecipeRepository.Store(&newRecipe)
 	if err != nil {
 		log.Warn(err.Error())
-		return recipe, err
+		return res, err
 	}
 
 	// insert recipe materials
@@ -92,10 +89,10 @@ func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (recipe entity
 			MaterialID: uint(recipeMaterial.MaterialID),
 			Amount:     recipeMaterial.Amount,
 		}
-		recipeMaterialEntity, err := recipeMaterialRepo.Store(&data)
+		recipeMaterialEntity, err := uc.RecipeMaterialRepository.Store(&data)
 		if err != nil {
 			log.Warn(err.Error())
-			return recipe, err
+			return res, err
 		}
 		recipe.RecipeMaterials = append(recipe.RecipeMaterials, recipeMaterialEntity)
 	}
@@ -107,10 +104,10 @@ func (uc *RecipeUC) Store(req *request.RecipeRequest, userID int) (recipe entity
 			Description: cookStep.Description,
 			Order:       cookStep.Order,
 		}
-		cookStepEntity, err := cookStepRepository.Store(&data)
+		cookStepEntity, err := uc.CookStepRepository.Store(&data)
 		if err != nil {
 			log.Warn(err.Error())
-			return recipe, err
+			return res, err
 		}
 		recipe.CookSteps = append(recipe.CookSteps, cookStepEntity)
 	}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Review struct {
@@ -34,8 +35,33 @@ func NewReviewRepository(db *gorm.DB) ReviewRepositoryInterface {
 	}
 }
 
+func (repo *ReviewRepository) ToRecord(entity *entity.Review) Review {
+	return Review{
+		ID:          entity.ID,
+		UserID:      entity.UserID,
+		Description: entity.Description,
+		Rating:      entity.Rating,
+		RecipeID:    entity.RecipeID,
+	}
+}
+
+func (repo *ReviewRepository) ToEntity(rec *Review) entity.Review {
+	userRepo := UserRepository{}
+	return entity.Review{
+		ID:          rec.ID,
+		UserID:      rec.UserID,
+		UserEntity:  userRepo.ToEntity(&rec.User),
+		Description: rec.Description,
+		Rating:      rec.Rating,
+		RecipeID:    rec.RecipeID,
+		CreatedAt:   rec.CreatedAt,
+		UpdatedAt:   rec.UpdatedAt,
+	}
+}
+
 func (repo *ReviewRepository) Store(review *entity.Review) error {
-	err := repo.DB.Create(review).Error
+	rec := repo.ToRecord(review)
+	err := repo.DB.Create(&rec).Error
 	if err != nil {
 		return err
 	}
@@ -45,21 +71,13 @@ func (repo *ReviewRepository) Store(review *entity.Review) error {
 
 func (repo *ReviewRepository) FindByRecipeID(recipeID int) (res []entity.Review, count int, err error) {
 	recs := []Review{}
-	err = repo.DB.Where("recipe_id = ?", recipeID).Find(&recs).Error
+	err = repo.DB.Preload(clause.Associations).Where("recipe_id = ?", recipeID).Find(&recs).Error
 	if err != nil {
 		return res, count, err
 	}
 
 	for _, rec := range recs {
-		res = append(res, entity.Review{
-			ID:          uint(rec.ID),
-			UserID:      uint(rec.UserID),
-			RecipeID:    uint(rec.RecipeID),
-			Description: rec.Description,
-			Rating:      rec.Rating,
-			CreatedAt:   rec.CreatedAt,
-			UpdatedAt:   rec.UpdatedAt,
-		})
+		res = append(res, repo.ToEntity(&rec))
 	}
 	return res, len(res), err
 }

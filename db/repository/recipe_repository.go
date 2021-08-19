@@ -45,17 +45,24 @@ func NewRecipeRepository(ctx context.Context, db *gorm.DB) RecipeRepositoryInter
 }
 
 func (repo *RecipeRepository) ToEntity(rec *Recipe) entity.Recipe {
+	fileRepo := FileRepository{}
+	recipeCategoryRepo := RecipeCategoryRepository{}
+	userRepo := UserRepository{}
+
 	return entity.Recipe{
-		ID:               rec.ID,
-		Title:            rec.Title,
-		Description:      rec.Description,
-		ThumbnailFileID:  int(rec.ThumbnailFileID),
-		RecipeCategoryID: int(rec.RecipeCategoryID),
-		UserID:           int(rec.UserID),
-		AverageRating:    rec.AverageRating,
-		CreatedAt:        rec.CreatedAt,
-		UpdatedAt:        rec.UpdatedAt,
-		DeletedAt:        rec.DeletedAt,
+		ID:                   rec.ID,
+		Title:                rec.Title,
+		Description:          rec.Description,
+		ThumbnailFileID:      int(rec.ThumbnailFileID),
+		ThumbnailFileEntity:  fileRepo.ToEntity(&rec.ThumbnailFile),
+		RecipeCategoryID:     int(rec.RecipeCategoryID),
+		RecipeCategoryEntity: recipeCategoryRepo.ToEntity(&rec.RecipeCategory),
+		UserID:               int(rec.UserID),
+		UserEntity:           userRepo.ToEntity(&rec.User),
+		AverageRating:        rec.AverageRating,
+		CreatedAt:            rec.CreatedAt,
+		UpdatedAt:            rec.UpdatedAt,
+		DeletedAt:            rec.DeletedAt,
 	}
 }
 
@@ -76,7 +83,7 @@ func (repo *RecipeRepository) ToRecord(entity *entity.Recipe) Recipe {
 
 func (repo *RecipeRepository) GetAll() (res []entity.Recipe, err error) {
 	recs := []Recipe{}
-	err = repo.DB.Find(&recs).Error
+	err = repo.DB.Preload(clause.Associations).Find(&recs).Error
 	if err != nil {
 		return res, err
 	}

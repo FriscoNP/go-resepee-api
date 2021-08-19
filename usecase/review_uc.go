@@ -7,12 +7,12 @@ import (
 	"go-resepee-api/entity"
 
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 type ReviewUC struct {
-	Context context.Context
-	DB      *gorm.DB
+	Context          context.Context
+	ReviewRepository repository.ReviewRepositoryInterface
+	RecipeRepository repository.RecipeRepositoryInterface
 }
 
 type ReviewUCInterface interface {
@@ -20,23 +20,21 @@ type ReviewUCInterface interface {
 	FindByRecipeID(recipeID int) (res []entity.Review, err error)
 }
 
-func NewReviewUC(ctx context.Context, db *gorm.DB) ReviewUCInterface {
+func NewReviewUC(ctx context.Context, reviewRepo repository.ReviewRepositoryInterface, recipeRepo repository.RecipeRepositoryInterface) ReviewUCInterface {
 	return &ReviewUC{
-		Context: ctx,
-		DB:      db,
+		Context:          ctx,
+		ReviewRepository: reviewRepo,
+		RecipeRepository: recipeRepo,
 	}
 }
 
 func (uc *ReviewUC) Store(req *request.ReviewRequest, userID int) (res entity.Review, err error) {
-	reviewRepo := repository.NewReviewRepository(uc.DB)
-	recipeRepo := repository.NewRecipeRepository(uc.Context, uc.DB)
-
-	recipe, err := recipeRepo.FindByID(req.RecipeID)
+	recipe, err := uc.RecipeRepository.FindByID(req.RecipeID)
 	if err != nil {
 		log.Warn(err.Error())
 		return res, err
 	}
-	_, totalReview, err := reviewRepo.FindByRecipeID(req.RecipeID)
+	_, totalReview, err := uc.ReviewRepository.FindByRecipeID(req.RecipeID)
 	if err != nil {
 		log.Warn(err.Error())
 		return res, err
@@ -46,30 +44,30 @@ func (uc *ReviewUC) Store(req *request.ReviewRequest, userID int) (res entity.Re
 	totalRating := (float64(totalReview) * recipe.AverageRating) + float64(req.Rating)
 	newAverageRating := totalRating / (float64(totalReview) + 1)
 
-	err = recipeRepo.UpdateAverageRating(req.RecipeID, newAverageRating)
+	err = uc.RecipeRepository.UpdateAverageRating(req.RecipeID, newAverageRating)
 	if err != nil {
 		log.Warn(err.Error())
 		return res, err
 	}
 
-	res.RecipeID = uint(req.RecipeID)
-	res.Description = req.Description
-	res.Rating = req.Rating
-	res.UserID = uint(userID)
+	review := entity.Review{
+		RecipeID:    uint(req.RecipeID),
+		Description: req.Description,
+		Rating:      req.Rating,
+		UserID:      uint(userID),
+	}
 
-	err = reviewRepo.Store(&res)
+	err = uc.ReviewRepository.Store(&review)
 	if err != nil {
 		log.Warn(err.Error())
 		return res, err
 	}
 
-	return res, err
+	return review, err
 }
 
 func (uc *ReviewUC) FindByRecipeID(recipeID int) (res []entity.Review, err error) {
-	reviewRepo := repository.NewReviewRepository(uc.DB)
-
-	res, _, err = reviewRepo.FindByRecipeID(recipeID)
+	res, _, err = uc.ReviewRepository.FindByRecipeID(recipeID)
 	if err != nil {
 		return res, err
 	}

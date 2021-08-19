@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Material struct {
@@ -36,19 +37,21 @@ func NewMaterialRepository(ctx context.Context, db *gorm.DB) MaterialRepositoryI
 }
 
 func (repo *MaterialRepository) ToEntity(rec *Material) entity.Material {
+	fileRepo := FileRepository{}
 	return entity.Material{
-		ID:          rec.ID,
-		Name:        rec.Name,
-		ImageFileID: int(rec.ImageFileID),
-		CreatedAt:   rec.CreatedAt,
-		UpdatedAt:   rec.UpdatedAt,
-		DeletedAt:   rec.DeletedAt,
+		ID:              rec.ID,
+		Name:            rec.Name,
+		ImageFileID:     int(rec.ImageFileID),
+		ImageFileEntity: fileRepo.ToEntity(&rec.ImageFile),
+		CreatedAt:       rec.CreatedAt,
+		UpdatedAt:       rec.UpdatedAt,
+		DeletedAt:       rec.DeletedAt,
 	}
 }
 
 func (repo *MaterialRepository) Get() (res []entity.Material, err error) {
 	materials := []Material{}
-	err = repo.DB.Find(&materials).Error
+	err = repo.DB.Preload(clause.Associations).Find(&materials).Error
 	if err != nil {
 		return res, err
 	}

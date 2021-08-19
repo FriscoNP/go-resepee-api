@@ -5,6 +5,7 @@ import (
 	"go-resepee-api/app/controller/request"
 	"go-resepee-api/app/controller/response"
 	"go-resepee-api/app/middleware"
+	"go-resepee-api/db/repository"
 	"go-resepee-api/usecase"
 	"net/http"
 
@@ -27,13 +28,14 @@ func NewAuthController(db *gorm.DB, jwtAuth *middleware.ConfigJWT) *AuthControll
 
 func (ac *AuthController) Login(c echo.Context) error {
 	ctx := c.Request().Context()
+	userRepo := repository.NewUserRepository(ctx, ac.DB)
 
 	req := request.LoginRequest{}
 	if err := c.Bind(&req); err != nil {
 		return SendError(c, http.StatusBadRequest, err)
 	}
 
-	authUC := usecase.NewAuthUC(ctx, ac.DB, ac.JwtAuth)
+	authUC := usecase.NewAuthUC(ctx, userRepo, ac.JwtAuth)
 	token, err := authUC.Login(req.Email, req.Password)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -52,18 +54,19 @@ func (ac *AuthController) Login(c echo.Context) error {
 
 func (ac *AuthController) Register(c echo.Context) error {
 	ctx := c.Request().Context()
+	userRepo := repository.NewUserRepository(ctx, ac.DB)
 
 	req := request.RegisterRequest{}
 	if err := c.Bind(&req); err != nil {
 		return SendError(c, http.StatusBadRequest, err)
 	}
 
-	authUC := usecase.NewAuthUC(ctx, ac.DB, ac.JwtAuth)
-	user, err := authUC.Register(&req)
+	authUC := usecase.NewAuthUC(ctx, userRepo, ac.JwtAuth)
+	err := authUC.Register(&req)
 	if err != nil {
 		log.Warn(err.Error())
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	return SendSuccess(c, user, "account_created")
+	return SendSuccess(c, nil, "account_created")
 }

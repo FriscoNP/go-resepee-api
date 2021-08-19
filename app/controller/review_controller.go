@@ -3,6 +3,7 @@ package controller
 import (
 	"go-resepee-api/app/controller/request"
 	"go-resepee-api/app/middleware"
+	"go-resepee-api/db/repository"
 	"go-resepee-api/usecase"
 	"net/http"
 	"strconv"
@@ -31,10 +32,9 @@ func (controller *ReviewController) FindByRecipeID(c echo.Context) error {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	reviewUC := usecase.ReviewUC{
-		Context: ctx,
-		DB:      controller.DB,
-	}
+	reviewRepository := repository.NewReviewRepository(controller.DB)
+	recipeRepository := repository.NewRecipeRepository(ctx, controller.DB)
+	reviewUC := usecase.NewReviewUC(ctx, reviewRepository, recipeRepository)
 
 	reviews, err := reviewUC.FindByRecipeID(recipeID)
 	if err != nil {
@@ -56,7 +56,9 @@ func (controller *ReviewController) Store(c echo.Context) error {
 	}
 
 	tx := controller.DB.Begin()
-	reviewUC := usecase.NewReviewUC(ctx, tx)
+	reviewRepository := repository.NewReviewRepository(tx)
+	recipeRepository := repository.NewRecipeRepository(ctx, tx)
+	reviewUC := usecase.NewReviewUC(ctx, reviewRepository, recipeRepository)
 	review, err := reviewUC.Store(&req, jwtUser.ID)
 	if err != nil {
 		tx.Rollback()
