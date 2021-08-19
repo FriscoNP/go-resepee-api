@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"go-resepee-api/entity"
 	"time"
 
@@ -68,7 +67,6 @@ func (repo *RecipeMaterialRepository) FindByRecipeID(recipeID int) (res []entity
 	}
 
 	for _, rec := range recs {
-		fmt.Println(rec)
 		res = append(res, repo.ToEntity(&rec))
 	}
 
