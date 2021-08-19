@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Material struct {
@@ -50,7 +51,7 @@ func (repo *MaterialRepository) ToEntity(rec *Material) entity.Material {
 
 func (repo *MaterialRepository) Get() (res []entity.Material, err error) {
 	materials := []Material{}
-	err = repo.DB.Find(&materials).Error
+	err = repo.DB.Preload(clause.Associations).Find(&materials).Error
 	if err != nil {
 		return res, err
 	}
