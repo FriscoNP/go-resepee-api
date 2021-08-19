@@ -14,9 +14,10 @@ import (
 )
 
 type AuthUC struct {
-	Context        context.Context
-	JwtAuth        *middleware.ConfigJWT
-	UserRepository repository.UserRepositoryInterface
+	Context               context.Context
+	JwtAuth               *middleware.ConfigJWT
+	UserRepository        repository.UserRepositoryInterface
+	AbstractApiRepository repository.AbstractApiRepositoryInterface
 }
 
 type AuthUCInterface interface {
@@ -24,11 +25,12 @@ type AuthUCInterface interface {
 	Register(req *request.RegisterRequest) (err error)
 }
 
-func NewAuthUC(ctx context.Context, repo repository.UserRepositoryInterface, jwtAuth *middleware.ConfigJWT) AuthUCInterface {
+func NewAuthUC(ctx context.Context, repo repository.UserRepositoryInterface, abstractApi repository.AbstractApiRepositoryInterface, jwtAuth *middleware.ConfigJWT) AuthUCInterface {
 	return &AuthUC{
-		Context:        ctx,
-		UserRepository: repo,
-		JwtAuth:        jwtAuth,
+		Context:               ctx,
+		UserRepository:        repo,
+		AbstractApiRepository: abstractApi,
+		JwtAuth:               jwtAuth,
 	}
 }
 
@@ -56,6 +58,15 @@ func (uc *AuthUC) Register(req *request.RegisterRequest) (err error) {
 	}
 	if existedUser.Email != "" {
 		return errors.New("email_registered")
+	}
+
+	emailValidation, err := uc.AbstractApiRepository.ValidateEmail(req.Email)
+	if err != nil {
+		log.Warn(err.Error())
+		return err
+	}
+	if !emailValidation.IsValidFormat || !emailValidation.IsSMTPValid {
+		return errors.New("invalid email format")
 	}
 
 	hashedPassword, err := security.Hash(req.Password)

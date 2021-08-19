@@ -17,7 +17,8 @@ import (
 )
 
 var (
-	userRepository mocks.UserRepositoryInterface
+	userRepository        mocks.UserRepositoryInterface
+	abstractApiRepository mocks.AbstractApiRepositoryInterface
 
 	mockRegisterRequest = request.RegisterRequest{
 		Name:                 "user test",
@@ -26,12 +27,13 @@ var (
 		PasswordConfirmation: "password",
 	}
 
-	authUC = usecase.NewAuthUC(context.Background(), &userRepository, &middleware.ConfigJWT{})
+	authUC = usecase.NewAuthUC(context.Background(), &userRepository, &abstractApiRepository, &middleware.ConfigJWT{})
 )
 
 func TestRegister(t *testing.T) {
 	t.Run("register happy case", func(t *testing.T) {
 		userRepository.On("FindByEmail", mock.AnythingOfType("string")).Return(entity.User{}, gorm.ErrRecordNotFound).Once()
+		abstractApiRepository.On("ValidateEmail", mock.AnythingOfType("string")).Return(entity.AbstractEmailValidation{IsValidFormat: true, IsSMTPValid: true}, nil).Once()
 		userRepository.On("Store", mock.AnythingOfType("*entity.User")).Return(nil).Once()
 
 		err := authUC.Register(&mockRegisterRequest)
@@ -57,8 +59,25 @@ func TestRegister(t *testing.T) {
 		assert.Error(t, err)
 	})
 
+	t.Run("register error abstract api", func(t *testing.T) {
+		userRepository.On("FindByEmail", mock.AnythingOfType("string")).Return(entity.User{}, gorm.ErrRecordNotFound).Once()
+		abstractApiRepository.On("ValidateEmail", mock.AnythingOfType("string")).Return(entity.AbstractEmailValidation{}, errors.New("abstract api error")).Once()
+
+		err := authUC.Register(&mockRegisterRequest)
+		assert.Error(t, err)
+	})
+
+	t.Run("register error invalid email", func(t *testing.T) {
+		userRepository.On("FindByEmail", mock.AnythingOfType("string")).Return(entity.User{}, gorm.ErrRecordNotFound).Once()
+		abstractApiRepository.On("ValidateEmail", mock.AnythingOfType("string")).Return(entity.AbstractEmailValidation{IsValidFormat: false, IsSMTPValid: false}, nil).Once()
+
+		err := authUC.Register(&mockRegisterRequest)
+		assert.Error(t, err)
+	})
+
 	t.Run("register error store user", func(t *testing.T) {
 		userRepository.On("FindByEmail", mock.AnythingOfType("string")).Return(entity.User{}, gorm.ErrRecordNotFound).Once()
+		abstractApiRepository.On("ValidateEmail", mock.AnythingOfType("string")).Return(entity.AbstractEmailValidation{IsValidFormat: true, IsSMTPValid: true}, nil).Once()
 		userRepository.On("Store", mock.AnythingOfType("*entity.User")).Return(errors.New("failed to store user")).Once()
 
 		err := authUC.Register(&mockRegisterRequest)

@@ -11,6 +11,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
@@ -29,13 +30,14 @@ func NewAuthController(db *gorm.DB, jwtAuth *middleware.ConfigJWT) *AuthControll
 func (ac *AuthController) Login(c echo.Context) error {
 	ctx := c.Request().Context()
 	userRepo := repository.NewUserRepository(ctx, ac.DB)
+	abstractApiRepo := repository.NewAbstractApiRepository(*http.DefaultClient, viper.GetString("abstract_api.key"))
 
 	req := request.LoginRequest{}
 	if err := c.Bind(&req); err != nil {
 		return SendError(c, http.StatusBadRequest, err)
 	}
 
-	authUC := usecase.NewAuthUC(ctx, userRepo, ac.JwtAuth)
+	authUC := usecase.NewAuthUC(ctx, userRepo, abstractApiRepo, ac.JwtAuth)
 	token, err := authUC.Login(req.Email, req.Password)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -55,13 +57,14 @@ func (ac *AuthController) Login(c echo.Context) error {
 func (ac *AuthController) Register(c echo.Context) error {
 	ctx := c.Request().Context()
 	userRepo := repository.NewUserRepository(ctx, ac.DB)
+	abstractApiRepo := repository.NewAbstractApiRepository(*http.DefaultClient, viper.GetString("abstract_api.key"))
 
 	req := request.RegisterRequest{}
 	if err := c.Bind(&req); err != nil {
 		return SendError(c, http.StatusBadRequest, err)
 	}
 
-	authUC := usecase.NewAuthUC(ctx, userRepo, ac.JwtAuth)
+	authUC := usecase.NewAuthUC(ctx, userRepo, abstractApiRepo, ac.JwtAuth)
 	err := authUC.Register(&req)
 	if err != nil {
 		log.Warn(err.Error())
