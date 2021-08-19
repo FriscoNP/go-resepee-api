@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"go-resepee-api/entity"
 	"time"
 
@@ -36,13 +37,15 @@ func NewRecipeMaterialRepository(ctx context.Context, db *gorm.DB) RecipeMateria
 }
 
 func (repo *RecipeMaterialRepository) ToEntity(rec *RecipeMaterial) entity.RecipeMaterial {
+	materialRepo := MaterialRepository{}
 	return entity.RecipeMaterial{
-		ID:         rec.ID,
-		RecipeID:   rec.RecipeID,
-		MaterialID: rec.MaterialID,
-		Amount:     rec.Amount,
-		CreatedAt:  rec.CreatedAt,
-		UpdatedAt:  rec.UpdatedAt,
+		ID:             rec.ID,
+		RecipeID:       rec.RecipeID,
+		MaterialID:     rec.MaterialID,
+		MaterialEntity: materialRepo.ToEntity(&rec.Material),
+		Amount:         rec.Amount,
+		CreatedAt:      rec.CreatedAt,
+		UpdatedAt:      rec.UpdatedAt,
 	}
 }
 
@@ -59,12 +62,13 @@ func (repo *RecipeMaterialRepository) ToRecord(entity *entity.RecipeMaterial) Re
 
 func (repo *RecipeMaterialRepository) FindByRecipeID(recipeID int) (res []entity.RecipeMaterial, err error) {
 	recs := []RecipeMaterial{}
-	err = repo.DB.Where("recipe_id = ?", recipeID).Find(&recs).Error
+	err = repo.DB.Preload("Material.ImageFile").Where("recipe_id = ?", recipeID).Find(&recs).Error
 	if err != nil {
 		return res, err
 	}
 
 	for _, rec := range recs {
+		fmt.Println(rec)
 		res = append(res, repo.ToEntity(&rec))
 	}
 
@@ -73,7 +77,7 @@ func (repo *RecipeMaterialRepository) FindByRecipeID(recipeID int) (res []entity
 
 func (repo *RecipeMaterialRepository) Store(recipeMaterial *entity.RecipeMaterial) (res entity.RecipeMaterial, err error) {
 	rec := repo.ToRecord(recipeMaterial)
-	err = repo.DB.Create(&rec).Error
+	err = repo.DB.Preload("Material.ImageFile").Create(&rec).Error
 	if err != nil {
 		return res, err
 	}
