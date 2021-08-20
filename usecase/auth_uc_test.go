@@ -87,7 +87,7 @@ func TestRegister(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	t.Run("login happy case", func(t *testing.T) {
-		hashedPassword, _ := security.Hash("password")
+		hashedPassword := security.Hash("password")
 		user := entity.User{
 			ID:       1,
 			Name:     "user test",
@@ -99,6 +99,21 @@ func TestLogin(t *testing.T) {
 		token, err := authUC.Login(user.Email, "password")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
+	})
+
+	t.Run("login error wrong password", func(t *testing.T) {
+		hashedPassword := security.Hash("password")
+		user := entity.User{
+			ID:       1,
+			Name:     "user test",
+			Email:    "user@test.com",
+			Password: hashedPassword,
+		}
+		userRepository.On("FindByEmail", mock.AnythingOfType("string")).Return(user, nil).Once()
+
+		token, err := authUC.Login(user.Email, "password123")
+		assert.Error(t, err)
+		assert.Empty(t, token)
 	})
 
 	t.Run("login error find email", func(t *testing.T) {

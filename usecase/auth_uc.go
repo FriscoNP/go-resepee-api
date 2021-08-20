@@ -69,10 +69,7 @@ func (uc *AuthUC) Register(req *request.RegisterRequest) (err error) {
 		return errors.New("invalid email format")
 	}
 
-	hashedPassword, err := security.Hash(req.Password)
-	if err != nil {
-		return err
-	}
+	hashedPassword := security.Hash(req.Password)
 
 	user := entity.User{
 		Name:     req.Name,
