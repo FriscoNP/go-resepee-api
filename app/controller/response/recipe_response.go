@@ -1,5 +1,7 @@
 package response
 
+import "go-resepee-api/entity"
+
 type RecipeResponse struct {
 	ID            int     `json:"id"`
 	Title         string  `json:"title"`
@@ -22,7 +24,38 @@ type RecipeDetailResponse struct {
 	CookSteps     []CookStepResponse       `json:"cook_steps"`
 }
 
-type RecipeMaterialResponse struct {
-	Material MaterialResponse `json:"material"`
-	Amount   string           `json:"amount"`
+func CreateRecipeResponse(entity *entity.Recipe) RecipeResponse {
+	return RecipeResponse{
+		ID:            int(entity.ID),
+		Title:         entity.Title,
+		Description:   entity.Description,
+		ThumbnailPath: entity.ThumbnailFileEntity.Path,
+		Category:      entity.RecipeCategoryEntity.Name,
+		CreatedBy:     entity.UserEntity.Name,
+		AverageRating: entity.AverageRating,
+	}
+}
+
+func CreateRecipeDetailResponse(entity *entity.Recipe) RecipeDetailResponse {
+	materials := []RecipeMaterialResponse{}
+	for _, material := range entity.RecipeMaterials {
+		materials = append(materials, CreateRecipeMaterialResponse(&material))
+	}
+
+	cookSteps := []CookStepResponse{}
+	for _, cook := range entity.CookSteps {
+		cookSteps = append(cookSteps, CreateCookStepResponse(&cook))
+	}
+
+	return RecipeDetailResponse{
+		ID:            int(entity.ID),
+		Title:         entity.Title,
+		Description:   entity.Description,
+		ThumbnailPath: entity.ThumbnailFileEntity.Path,
+		Category:      entity.RecipeCategoryEntity.Name,
+		CreatedBy:     entity.UserEntity.Name,
+		AverageRating: entity.AverageRating,
+		Materials:     materials,
+		CookSteps:     cookSteps,
+	}
 }
