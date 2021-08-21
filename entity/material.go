@@ -7,11 +7,11 @@ import (
 )
 
 type Material struct {
-	ID              uint           `json:"id" gorm:"primaryKey"`
-	Name            string         `json:"name"`
-	ImageFileID     int            `json:"image_file_id"`
-	ImageFileEntity File           `json:"image_file"`
-	CreatedAt       time.Time      `json:"created_at"`
-	UpdatedAt       time.Time      `json:"updated_at"`
-	DeletedAt       gorm.DeletedAt `json:"deleted_at"`
+	ID              uint
+	Name            string
+	ImageFileID     int
+	ImageFileEntity File
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DeletedAt       gorm.DeletedAt
 }
