@@ -49,6 +49,17 @@ func (repo *MaterialRepository) ToEntity(rec *Material) entity.Material {
 	}
 }
 
+func (repo *MaterialRepository) ToRecord(entity *entity.Material) Material {
+	return Material{
+		ID:          entity.ID,
+		Name:        entity.Name,
+		ImageFileID: entity.ImageFileID,
+		CreatedAt:   entity.CreatedAt,
+		UpdatedAt:   entity.UpdatedAt,
+		DeletedAt:   entity.DeletedAt,
+	}
+}
+
 func (repo *MaterialRepository) Get() (res []entity.Material, err error) {
 	materials := []Material{}
 	err = repo.DB.Preload(clause.Associations).Find(&materials).Error
@@ -64,10 +75,7 @@ func (repo *MaterialRepository) Get() (res []entity.Material, err error) {
 }
 
 func (repo *MaterialRepository) Store(material *entity.Material) (res entity.Material, err error) {
-	rec := Material{
-		Name:        material.Name,
-		ImageFileID: material.ImageFileID,
-	}
+	rec := repo.ToRecord(material)
 	err = repo.DB.Create(&rec).Error
 	if err != nil {
 		return res, err
