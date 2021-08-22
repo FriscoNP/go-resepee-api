@@ -1,0 +1,13 @@
+server:
+  address: localhost:3000
+database:
+  host: localhost
+  port: 3306
+  username: <username>
+  password: <password>
+  db: resepee_db
+jwt:
+  secret: <jwt-secret>
+  expired: 1
+abstract_api:
+  key: <abstract-api-key>
