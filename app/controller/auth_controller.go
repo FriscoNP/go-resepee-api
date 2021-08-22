@@ -44,7 +44,7 @@ func (ac *AuthController) Login(c echo.Context) error {
 			return SendError(c, http.StatusNotFound, errors.New("account_not_found"))
 		}
 		log.Warn(err.Error())
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	resp := response.LoginResponse{
@@ -68,7 +68,7 @@ func (ac *AuthController) Register(c echo.Context) error {
 	user, err := authUC.Register(&req)
 	if err != nil {
 		log.Warn(err.Error())
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	return SendSuccess(c, response.CreateUserResponse(&user), "account_created")

@@ -30,7 +30,7 @@ func (controller *ReviewController) FindByRecipeID(c echo.Context) error {
 	recipeID, err := strconv.Atoi(id)
 	if err != nil {
 		log.Warn(err.Error())
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	reviewRepository := repository.NewReviewRepository(controller.DB)
@@ -40,7 +40,7 @@ func (controller *ReviewController) FindByRecipeID(c echo.Context) error {
 	reviews, err := reviewUC.FindByRecipeID(recipeID)
 	if err != nil {
 		log.Warn(err.Error())
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	res := []response.ReviewResponse{}
@@ -69,7 +69,7 @@ func (controller *ReviewController) Store(c echo.Context) error {
 	if err != nil {
 		tx.Rollback()
 		log.Warn(err.Error())
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	tx.Commit()

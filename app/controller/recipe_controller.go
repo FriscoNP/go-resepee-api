@@ -33,7 +33,7 @@ func (controller *RecipeController) GetAll(c echo.Context) error {
 	recipeUC := usecase.NewRecipeUC(ctx, recipeRepo, recipeMaterialRepo, cookStepRepo)
 	resp, err := recipeUC.GetAll()
 	if err != nil {
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	recipes := []response.RecipeResponse{}
@@ -64,7 +64,7 @@ func (controller *RecipeController) Store(c echo.Context) error {
 	if err != nil {
 		// rollback if error
 		tx.Rollback()
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 	// commit transaction
 	tx.Commit()
@@ -77,7 +77,7 @@ func (controller *RecipeController) FindByID(c echo.Context) error {
 	id := c.Param("id")
 	recipeID, err := strconv.Atoi(id)
 	if err != nil {
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	recipeRepo := repository.NewRecipeRepository(ctx, controller.DB)
@@ -87,7 +87,7 @@ func (controller *RecipeController) FindByID(c echo.Context) error {
 	recipeUC := usecase.NewRecipeUC(ctx, recipeRepo, recipeMaterialRepo, cookStepRepo)
 	recipe, err := recipeUC.FindByID(recipeID)
 	if err != nil {
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	return SendSuccess(c, response.CreateRecipeDetailResponse(&recipe), "get_detail_recipe")

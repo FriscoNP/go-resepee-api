@@ -32,7 +32,7 @@ func (controller *FileController) Store(c echo.Context) error {
 	fileUC := usecase.NewFileUC(ctx, controller.DB)
 	res, err := fileUC.Store(fileType, file)
 	if err != nil {
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	return SendSuccess(c, response.CreateFileResponse(&res), "file_uploaded")

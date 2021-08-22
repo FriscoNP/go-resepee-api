@@ -30,7 +30,7 @@ func (controller *RecipeCategoryController) GetAll(c echo.Context) error {
 	resp, err := recipeCategoryUC.GetAll()
 	if err != nil {
 		log.Warn(err.Error())
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	categories := []response.RecipeCategoryResponse{}
@@ -54,7 +54,7 @@ func (controller *RecipeCategoryController) Store(c echo.Context) error {
 	resp, err := recipeCategoryUC.Store(&req)
 	if err != nil {
 		log.Warn(err.Error())
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	return SendSuccess(c, response.CreateRecipeCategoryResponse(&resp), "recipe_category_created")
