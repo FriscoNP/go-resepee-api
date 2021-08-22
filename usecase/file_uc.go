@@ -7,6 +7,8 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"strconv"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -47,7 +49,7 @@ func (uc *FileUC) Store(fileType string, file *multipart.FileHeader) (res entity
 	}
 
 	// destination
-	dest := folderPath + "/" + file.Filename
+	dest := folderPath + "/" + strconv.FormatInt(time.Now().Unix(), 10) + "_" + file.Filename
 	dst, err := os.Create(dest)
 	if err != nil {
 		log.Warn(err.Error())
