@@ -80,40 +80,6 @@
 			"name": "Files",
 			"item": [
 				{
-					"name": "Get by ID",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{url}}/files/:id",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"files",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": null
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Upload",
 					"event": [
 						{
