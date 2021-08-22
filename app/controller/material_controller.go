@@ -33,7 +33,7 @@ func (mc *MaterialController) Get(c echo.Context) error {
 	materials, err := materialUC.Get()
 	if err != nil {
 		log.Warn(err.Error())
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	res := []response.MaterialResponse{}
@@ -57,7 +57,7 @@ func (mc *MaterialController) Store(c echo.Context) error {
 	materialUC := usecase.NewMaterialUC(ctx, materialRepo)
 	material, err := materialUC.Store(&req)
 	if err != nil {
-		return SendError(c, http.StatusInternalServerError, err)
+		return SendError(c, http.StatusBadRequest, err)
 	}
 
 	return SendSuccess(c, response.CreateMaterialResponse(&material), "material_created")

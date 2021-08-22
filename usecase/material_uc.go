@@ -5,6 +5,8 @@ import (
 	"go-resepee-api/app/controller/request"
 	"go-resepee-api/db/repository"
 	"go-resepee-api/entity"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type MaterialUC struct {
@@ -27,6 +29,7 @@ func NewMaterialUC(ctx context.Context, repo repository.MaterialRepositoryInterf
 func (uc *MaterialUC) Get() (res []entity.Material, err error) {
 	res, err = uc.MaterialRepository.Get()
 	if err != nil {
+		log.Warn(err.Error())
 		return res, err
 	}
 
@@ -41,6 +44,7 @@ func (uc *MaterialUC) Store(req *request.CreateMaterialRequest) (res entity.Mate
 
 	res, err = uc.MaterialRepository.Store(&material)
 	if err != nil {
+		log.Warn(err.Error())
 		return res, err
 	}
 

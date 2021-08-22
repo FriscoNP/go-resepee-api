@@ -78,6 +78,7 @@ func (uc *AuthUC) Register(req *request.RegisterRequest) (res entity.User, err e
 	}
 	res, err = uc.UserRepository.Store(&user)
 	if err != nil {
+		log.Warn(err.Error())
 		return res, err
 	}
 
