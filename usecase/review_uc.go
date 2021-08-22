@@ -69,6 +69,7 @@ func (uc *ReviewUC) Store(req *request.ReviewRequest, userID int) (res entity.Re
 func (uc *ReviewUC) FindByRecipeID(recipeID int) (res []entity.Review, err error) {
 	res, _, err = uc.ReviewRepository.FindByRecipeID(recipeID)
 	if err != nil {
+		log.Warn(err.Error())
 		return res, err
 	}
 
