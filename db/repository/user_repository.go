@@ -21,7 +21,7 @@ type User struct {
 type UserRepositoryInterface interface {
 	FindByID(id int) (res entity.User, err error)
 	FindByEmail(email string) (res entity.User, err error)
-	Store(user *entity.User) (err error)
+	Store(user *entity.User) (res entity.User, err error)
 }
 
 type UserRepository struct {
@@ -33,6 +33,18 @@ func NewUserRepository(ctx context.Context, db *gorm.DB) UserRepositoryInterface
 	return &UserRepository{
 		ctx: ctx,
 		DB:  db,
+	}
+}
+
+func ToRecord(entity *entity.User) User {
+	return User{
+		ID:        entity.ID,
+		Name:      entity.Name,
+		Email:     entity.Email,
+		Password:  entity.Password,
+		CreatedAt: entity.CreatedAt,
+		UpdatedAt: entity.UpdatedAt,
+		DeletedAt: entity.DeletedAt,
 	}
 }
 
@@ -66,7 +78,7 @@ func (repo *UserRepository) FindByEmail(email string) (res entity.User, err erro
 	return repo.ToEntity(&rec), err
 }
 
-func (repo *UserRepository) Store(user *entity.User) (err error) {
+func (repo *UserRepository) Store(user *entity.User) (res entity.User, err error) {
 	rec := User{
 		Name:     user.Name,
 		Email:    user.Email,
@@ -74,7 +86,7 @@ func (repo *UserRepository) Store(user *entity.User) (err error) {
 	}
 	err = repo.DB.Create(&rec).Error
 	if err != nil {
-		return err
+		return res, err
 	}
-	return err
+	return repo.ToEntity(&rec), err
 }

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"go-resepee-api/app/controller/response"
 	"go-resepee-api/usecase"
 	"net/http"
 
@@ -34,5 +35,5 @@ func (controller *FileController) Store(c echo.Context) error {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	return SendSuccess(c, res, "file_uploaded")
+	return SendSuccess(c, response.CreateFileResponse(&res), "file_uploaded")
 }

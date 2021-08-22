@@ -22,7 +22,7 @@ type AuthUC struct {
 
 type AuthUCInterface interface {
 	Login(email, password string) (res string, err error)
-	Register(req *request.RegisterRequest) (err error)
+	Register(req *request.RegisterRequest) (res entity.User, err error)
 }
 
 func NewAuthUC(ctx context.Context, repo repository.UserRepositoryInterface, abstractApi repository.AbstractApiRepositoryInterface, jwtAuth *middleware.ConfigJWT) AuthUCInterface {
@@ -50,39 +50,36 @@ func (uc *AuthUC) Login(email, password string) (res string, err error) {
 	return res, err
 }
 
-func (uc *AuthUC) Register(req *request.RegisterRequest) (err error) {
+func (uc *AuthUC) Register(req *request.RegisterRequest) (res entity.User, err error) {
 	existedUser, err := uc.UserRepository.FindByEmail(req.Email)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		log.Warn(err.Error())
-		return err
+		return res, err
 	}
 	if existedUser.Email != "" {
-		return errors.New("email_registered")
+		return res, errors.New("email_registered")
 	}
 
 	emailValidation, err := uc.AbstractApiRepository.ValidateEmail(req.Email)
 	if err != nil {
 		log.Warn(err.Error())
-		return err
+		return res, err
 	}
 	if !emailValidation.IsValidFormat || !emailValidation.IsSMTPValid {
-		return errors.New("invalid email format")
+		return res, errors.New("invalid email format")
 	}
 
-	hashedPassword, err := security.Hash(req.Password)
-	if err != nil {
-		return err
-	}
+	hashedPassword := security.Hash(req.Password)
 
 	user := entity.User{
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: hashedPassword,
 	}
-	err = uc.UserRepository.Store(&user)
+	res, err = uc.UserRepository.Store(&user)
 	if err != nil {
-		return err
+		return res, err
 	}
 
-	return err
+	return res, err
 }

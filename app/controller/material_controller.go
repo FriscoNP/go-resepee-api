@@ -2,6 +2,7 @@ package controller
 
 import (
 	"go-resepee-api/app/controller/request"
+	"go-resepee-api/app/controller/response"
 	"go-resepee-api/app/middleware"
 	"go-resepee-api/db/repository"
 	"go-resepee-api/usecase"
@@ -35,7 +36,12 @@ func (mc *MaterialController) Get(c echo.Context) error {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	return SendSuccess(c, materials, "get_materials")
+	res := []response.MaterialResponse{}
+	for _, material := range materials {
+		res = append(res, response.CreateMaterialResponse(&material))
+	}
+
+	return SendSuccess(c, res, "get_materials")
 }
 
 func (mc *MaterialController) Store(c echo.Context) error {
@@ -54,5 +60,5 @@ func (mc *MaterialController) Store(c echo.Context) error {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	return SendSuccess(c, material, "material_created")
+	return SendSuccess(c, response.CreateMaterialResponse(&material), "material_created")
 }

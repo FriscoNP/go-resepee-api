@@ -2,6 +2,7 @@ package controller
 
 import (
 	"go-resepee-api/app/controller/request"
+	"go-resepee-api/app/controller/response"
 	"go-resepee-api/app/middleware"
 	"go-resepee-api/db/repository"
 	"go-resepee-api/usecase"
@@ -42,7 +43,12 @@ func (controller *ReviewController) FindByRecipeID(c echo.Context) error {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	return SendSuccess(c, reviews, "get_recipe_reviews")
+	res := []response.ReviewResponse{}
+	for _, review := range reviews {
+		res = append(res, response.CreateReviewResponse(&review))
+	}
+
+	return SendSuccess(c, res, "get_recipe_reviews")
 }
 
 func (controller *ReviewController) Store(c echo.Context) error {
@@ -67,5 +73,5 @@ func (controller *ReviewController) Store(c echo.Context) error {
 	}
 
 	tx.Commit()
-	return SendSuccess(c, review, "review_created")
+	return SendSuccess(c, response.CreateReviewResponse(&review), "review_created")
 }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"go-resepee-api/app/controller/request"
+	"go-resepee-api/app/controller/response"
 	"go-resepee-api/db/repository"
 	"go-resepee-api/usecase"
 	"net/http"
@@ -32,7 +33,12 @@ func (controller *RecipeCategoryController) GetAll(c echo.Context) error {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	return SendSuccess(c, resp, "get_all_category")
+	categories := []response.RecipeCategoryResponse{}
+	for _, res := range resp {
+		categories = append(categories, response.CreateRecipeCategoryResponse(&res))
+	}
+
+	return SendSuccess(c, categories, "get_all_category")
 }
 
 func (controller *RecipeCategoryController) Store(c echo.Context) error {
@@ -51,5 +57,5 @@ func (controller *RecipeCategoryController) Store(c echo.Context) error {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	return SendSuccess(c, resp, "recipe_category_created")
+	return SendSuccess(c, response.CreateRecipeCategoryResponse(&resp), "recipe_category_created")
 }

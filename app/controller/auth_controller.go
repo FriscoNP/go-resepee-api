@@ -65,11 +65,11 @@ func (ac *AuthController) Register(c echo.Context) error {
 	}
 
 	authUC := usecase.NewAuthUC(ctx, userRepo, abstractApiRepo, ac.JwtAuth)
-	err := authUC.Register(&req)
+	user, err := authUC.Register(&req)
 	if err != nil {
 		log.Warn(err.Error())
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	return SendSuccess(c, nil, "account_created")
+	return SendSuccess(c, response.CreateUserResponse(&user), "account_created")
 }

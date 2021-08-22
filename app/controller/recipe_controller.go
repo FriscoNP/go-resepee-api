@@ -2,6 +2,7 @@ package controller
 
 import (
 	"go-resepee-api/app/controller/request"
+	"go-resepee-api/app/controller/response"
 	"go-resepee-api/app/middleware"
 	"go-resepee-api/db/repository"
 	"go-resepee-api/usecase"
@@ -35,7 +36,12 @@ func (controller *RecipeController) GetAll(c echo.Context) error {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	return SendSuccess(c, resp, "get_all_recipe")
+	recipes := []response.RecipeResponse{}
+	for _, res := range resp {
+		recipes = append(recipes, response.CreateRecipeResponse(&res))
+	}
+
+	return SendSuccess(c, recipes, "get_all_recipe")
 }
 
 func (controller *RecipeController) Store(c echo.Context) error {
@@ -63,7 +69,7 @@ func (controller *RecipeController) Store(c echo.Context) error {
 	// commit transaction
 	tx.Commit()
 
-	return SendSuccess(c, recipe, "recipe_created")
+	return SendSuccess(c, response.CreateRecipeDetailResponse(&recipe), "recipe_created")
 }
 
 func (controller *RecipeController) FindByID(c echo.Context) error {
@@ -84,5 +90,5 @@ func (controller *RecipeController) FindByID(c echo.Context) error {
 		return SendError(c, http.StatusInternalServerError, err)
 	}
 
-	return SendSuccess(c, recipe, "get_detail_recipe")
+	return SendSuccess(c, response.CreateRecipeDetailResponse(&recipe), "get_detail_recipe")
 }
